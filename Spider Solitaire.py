@@ -8,12 +8,29 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Streamlit 여백 및 헤더 제거
+# Streamlit 여백 완전 밀착 및 스크롤 바 제거
 st.markdown("""
     <style>
-    [data-testid="stHeader"], [data-testid="stToolbar"] { display: none !important; }
-    .main .block-container { padding: 0rem !important; max-width: 100% !important; }
-    iframe { border: none !important; width: 100vw !important; height: 100vh !important; }
+    [data-testid="stHeader"], [data-testid="stToolbar"], footer { display: none !important; }
+    .main .block-container { 
+        padding: 0rem !important; 
+        margin: 0rem !important;
+        max-width: 100% !important; 
+        width: 100% !important;
+    }
+    html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        width: 100% !important;
+        height: 100% !important;
+    }
+    iframe { 
+        border: none !important; 
+        width: 100% !important; 
+        height: 100vh !important; 
+        display: block !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -26,31 +43,36 @@ klondike_full_html = """
     @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&family=Cinzel:wght@700&display=swap');
 
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-    body {
+    html, body {
+        width: 100%; height: 100%; overflow: hidden;
         background-color: #0d0d0d;
         background-image: 
             radial-gradient(circle at 50% 50%, rgba(36, 52, 71, 0.3) 0%, rgba(13, 13, 13, 0.95) 100%),
             url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23b89b5e' fill-opacity='0.04' fill-rule='evenodd'%3E%3Cpath d='M30 30L15 0H0v15l30 30 30-30V0H45L30 30zM0 45h15l15-15 15 15h15V30L30 60 0 30v15z'/%3E%3C/g%3E%3C/svg%3E");
         font-family: 'Shippori Mincho', serif;
-        width: 100vw; height: 100vh; overflow: hidden;
         display: flex; flex-direction: column;
     }
 
     #top-bar {
-        height: 52px; background: rgba(21, 21, 21, 0.9);
+        height: 50px; background: rgba(21, 21, 21, 0.9);
         border-bottom: 1px solid rgba(184, 155, 94, 0.3);
         display: flex; justify-content: space-between; align-items: center;
-        padding: 0 25px; color: #f3ebdd; font-size: 16px; z-index: 100;
+        padding: 0 20px; color: #f3ebdd; font-size: 16px; z-index: 100;
+        flex-shrink: 0;
     }
     .jp-title { font-weight: 800; letter-spacing: 0.2em; color: #f3ebdd; }
     .jp-stats { font-family: 'Cinzel', serif; color: #b89b5e; font-size: 15px; }
 
-    #game-board { flex: 1; position: relative; width: 100%; height: calc(100vh - 104px); }
+    #game-board { 
+        flex: 1; position: relative; width: 100%; height: 100%;
+        overflow: hidden;
+    }
 
     #bottom-bar {
-        height: 52px; background: rgba(15, 15, 15, 0.95);
+        height: 50px; background: rgba(15, 15, 15, 0.95);
         border-top: 1px solid rgba(184, 155, 94, 0.2);
         display: flex; justify-content: center; align-items: center; gap: 15px; z-index: 100;
+        flex-shrink: 0;
     }
     .btn {
         background: linear-gradient(180deg, #243447 0%, #151515 100%);
@@ -60,13 +82,13 @@ klondike_full_html = """
     }
     .btn:hover { background: #b83b32; color: #fff; border-color: #f3ebdd; }
 
-    /* 자동 완성 버튼 UI (중앙 정렬) */
+    /* 자동 완성 버튼 UI */
     #auto-btn {
         position: absolute; left: 50%; transform: translateX(-50%);
-        top: 2%; display: none; z-index: 500;
+        top: 12px; display: none; z-index: 500;
         background: linear-gradient(180deg, #b89b5e 0%, #7a612d 100%);
-        color: #0d0d0d; font-weight: 800; font-size: 15px;
-        padding: 8px 24px; border: 2px solid #f3ebdd; border-radius: 4px;
+        color: #0d0d0d; font-weight: 800; font-size: 14px;
+        padding: 6px 20px; border: 2px solid #f3ebdd; border-radius: 4px;
         box-shadow: 0 0 15px rgba(184, 155, 94, 0.6); cursor: pointer;
         transition: all 0.2s;
     }
@@ -78,8 +100,8 @@ klondike_full_html = """
         background-image: radial-gradient(#e5d9c5 1px, transparent 0); background-size: 8px 8px;
         border: 1px solid #c8b9a6; box-shadow: 0 4px 10px rgba(0,0,0,0.6);
         cursor: grab; display: flex; flex-direction: column; justify-content: space-between;
-        padding: 6px; font-family: 'Cinzel', serif; font-weight: 700;
-        transition: left 0.2s ease-out, top 0.2s ease-out, transform 0.2s ease;
+        padding: 5px; font-family: 'Cinzel', serif; font-weight: 700;
+        transition: left 0.15s ease-out, top 0.15s ease-out;
         z-index: 10;
     }
     .card.dragging {
@@ -93,7 +115,7 @@ klondike_full_html = """
     }
     @keyframes hintPulse {
         0% { transform: scale(1); box-shadow: 0 0 5px #b83b32; }
-        100% { transform: scale(1.08); box-shadow: 0 0 20px #b83b32; }
+        100% { transform: scale(1.06); box-shadow: 0 0 20px #b83b32; }
     }
     .card.back {
         background: #1a2634; border: 1px solid #b89b5e;
@@ -102,17 +124,17 @@ klondike_full_html = """
     }
     .card.red { color: #b83b32; }
     .card.black { color: #151515; }
-    .card .corner { line-height: 1; text-align: center; font-size: 0.9em; }
-    .card .suit-center { font-size: 1.8em; text-align: center; margin: auto; }
+    .card .corner { line-height: 1; text-align: center; font-size: 0.85em; }
+    .card .suit-center { font-size: 1.6em; text-align: center; margin: auto; }
 
     .card-slot {
         position: absolute; border-radius: 6px;
         border: 1px dashed rgba(184, 155, 94, 0.3); background: rgba(21, 21, 21, 0.4);
         display: flex; align-items: center; justify-content: center;
-        color: rgba(184, 155, 94, 0.3); font-size: 1rem;
+        color: rgba(184, 155, 94, 0.3); font-size: 0.9rem;
     }
 
-    /* 승리 일본풍 애니메이션 (벚꽃 & 종이풍선) */
+    /* 승리 일본풍 애니메이션 */
     #anim-container {
         position: absolute; top: 0; left: 0; width: 100%; height: 100%;
         pointer-events: none; overflow: hidden; z-index: 2000; display: none;
@@ -126,7 +148,7 @@ klondike_full_html = """
         100% { transform: translateY(105vh) rotate(360deg); opacity: 0.2; }
     }
     .balloon {
-        position: absolute; width: 50px; height: 50px; border-radius: 50%;
+        position: absolute; width: 45px; height: 45px; border-radius: 50%;
         background: conic-gradient(#b83b32 0 90deg, #f3ebdd 90deg 180deg, #243447 180deg 270deg, #b89b5e 270deg 360deg);
         box-shadow: inset 0 0 8px rgba(0,0,0,0.3); opacity: 0.9;
         animation: floatUp 6s ease-in infinite;
@@ -140,13 +162,13 @@ klondike_full_html = """
     #win-modal {
         position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
         background: rgba(13, 13, 13, 0.95); border: 2px solid #b89b5e;
-        padding: 30px 50px; text-align: center; color: #f3ebdd;
+        padding: 30px 45px; text-align: center; color: #f3ebdd;
         box-shadow: 0 0 30px rgba(0,0,0,0.9), 0 0 15px rgba(184, 155, 94, 0.5);
         z-index: 3000; display: none; border-radius: 4px;
     }
-    #win-modal h2 { font-weight: 800; color: #b89b5e; letter-spacing: 0.3em; margin-bottom: 15px; font-size: 24px; }
-    #win-modal p { font-size: 16px; margin: 8px 0; color: #f3ebdd; }
-    #win-modal .modal-btn { margin-top: 20px; }
+    #win-modal h2 { font-weight: 800; color: #b89b5e; letter-spacing: 0.3em; margin-bottom: 12px; font-size: 22px; }
+    #win-modal p { font-size: 15px; margin: 6px 0; color: #f3ebdd; }
+    #win-modal .modal-btn { margin-top: 18px; }
 </style>
 </head>
 <body>
@@ -170,8 +192,8 @@ klondike_full_html = """
 
 <div id="win-modal">
     <h2>祝・見事クリア！</h2>
-    <p>축하합니다! 게임을 완설하셨습니다.</p>
-    <hr style="border:0; border-top:1px solid rgba(184,155,94,0.3); margin: 15px 0;">
+    <p>축하합니다! 게임을 완성하셨습니다.</p>
+    <hr style="border:0; border-top:1px solid rgba(184,155,94,0.3); margin: 12px 0;">
     <p>최종 점수: <span id="final-score" style="color:#b89b5e; font-weight:bold;">0</span>점</p>
     <p>소요 시간: <span id="final-time" style="color:#b89b5e; font-weight:bold;">00:00</span></p>
     <button class="btn modal-btn" onclick="initGame()">다시 도전하기</button>
@@ -190,9 +212,19 @@ let timeSeconds = 0, timerInterval = null, score = 0, isGameWon = false;
 function resizeBoard() {
     const board = document.getElementById('game-board');
     const w = board.clientWidth, h = board.clientHeight;
-    gap = w * 0.02; cardW = (w - (gap * 8)) / 7; cardH = cardW * 1.45;
-    if (cardH * 4.2 > h) { cardH = h / 4.2; cardW = cardH / 1.45; gap = (w - (cardW * 7)) / 8; }
-    startY = cardH + gap * 1.2; render();
+    
+    // 화면비율 맞춤 재계산
+    gap = w * 0.02; 
+    cardW = (w - (gap * 8)) / 7; 
+    cardH = cardW * 1.45;
+    
+    if (cardH * 4.0 > h) {
+        cardH = h / 4.0;
+        cardW = cardH / 1.45;
+        gap = (w - (cardW * 7)) / 8;
+    }
+    startY = cardH + gap * 1.2; 
+    render();
 }
 
 function initGame() {
@@ -253,7 +285,6 @@ function undoMove() {
 
 function render() {
     const board = document.getElementById('game-board');
-    // auto-btn 유지를 위해 카드 요소만 삭제
     const cardsAndSlots = board.querySelectorAll('.card, .card-slot');
     cardsAndSlots.forEach(el => el.remove());
 
@@ -459,10 +490,8 @@ function removeSourceCard(type, col, idx) {
     return Array.isArray(cards) ? cards : [cards];
 }
 
-/* 힌트 시스템 */
 function showHint() {
     document.querySelectorAll('.card').forEach(c => c.classList.remove('highlight'));
-    // 1. Foundation 우선 이동
     if (waste.length > 0) {
         let wCard = waste[waste.length - 1];
         for (let f = 0; f < 4; f++) {
@@ -482,14 +511,12 @@ function showHint() {
             }
         }
     }
-    // 2. Stock 추천
     if (stock.length > 0) {
         let stockEl = document.getElementById(stock[stock.length - 1].uid);
         if (stockEl) stockEl.classList.add('highlight');
     }
 }
 
-/* 자동 완성 조건 체크 및 실행 */
 function checkAutoCompleteCondition() {
     if (stock.length > 0 || waste.length > 1) return;
     let allFaceUp = tableau.every(col => col.every(c => c.faceUp));
@@ -504,7 +531,6 @@ function runAutoComplete() {
     document.getElementById('auto-btn').style.display = 'none';
     let autoInterval = setInterval(() => {
         let moved = false;
-        // waste -> foundation
         if (waste.length > 0) {
             let card = waste[waste.length - 1];
             for (let f = 0; f < 4; f++) {
@@ -514,7 +540,6 @@ function runAutoComplete() {
                 }
             }
         }
-        // tableau -> foundation
         if (!moved) {
             for (let t = 0; t < 7; t++) {
                 if (tableau[t].length === 0) continue;
@@ -532,10 +557,9 @@ function runAutoComplete() {
         if (!moved || foundations.every(f => f.length === 13)) {
             clearInterval(autoInterval);
         }
-    }, 120);
+    }, 100);
 }
 
-/* 클리어 감지 & 승리 애니메이션 */
 function checkWinCondition() {
     let win = foundations.every(f => f.length === 13);
     if (win && !isGameWon) {
@@ -550,7 +574,6 @@ function triggerVictory() {
     container.style.display = 'block';
     container.innerHTML = '';
 
-    // 벚꽃 애니메이션 생성
     for (let i = 0; i < 40; i++) {
         let sakura = document.createElement('div');
         sakura.className = 'sakura';
@@ -562,7 +585,6 @@ function triggerVictory() {
         container.appendChild(sakura);
     }
 
-    // 종이풍선 애니메이션 생성
     for (let i = 0; i < 12; i++) {
         let balloon = document.createElement('div');
         balloon.className = 'balloon';
@@ -572,16 +594,17 @@ function triggerVictory() {
         container.appendChild(balloon);
     }
 
-    // 팝업 결과창 출현
     setTimeout(() => {
         document.getElementById('final-score').innerText = score;
         document.getElementById('final-time').innerText = document.getElementById('timer').innerText;
         document.getElementById('win-modal').style.display = 'block';
-    }, 1200);
+    }, 1000);
 }
 
 window.onresize = resizeBoard;
-window.onload = initGame;
+window.onload = () => {
+    setTimeout(initGame, 100);
+};
 </script>
 </body>
 </html>
