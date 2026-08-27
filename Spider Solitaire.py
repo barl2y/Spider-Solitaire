@@ -2,13 +2,13 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 st.set_page_config(
-    page_title="Klondike Solitaire",
-    page_icon="♠",
+    page_title="Klondike Solitaire — 蜘蛛百人一首",
+    page_icon="🂠",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# Streamlit 패딩 제거 및 전체 화면 최적화
+# Streamlit 전체 화면 및 여백 제거
 st.markdown("""
     <style>
     [data-testid="stHeader"], [data-testid="stToolbar"] { display: none !important; }
@@ -17,80 +17,98 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 클론다이크 카드 게임 (HTML5 + Drag & Drop JS)
-klondike_html = """
+# 일본풍 클론다이크 카드 게임 (드래그 & 애니메이션 완벽 구현)
+klondike_japanese_html = """
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&family=Cinzel:wght@700&display=swap');
+
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
     body {
-        background-color: #0f5e36;
-        background-image: radial-gradient(#157a46 15%, transparent 16%), radial-gradient(#157a46 15%, transparent 16%);
-        background-size: 60px 60px;
-        background-position: 0 0, 30px 30px;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #0d0d0d;
+        background-image: 
+            radial-gradient(circle at 50% 50%, rgba(36, 52, 71, 0.3) 0%, rgba(13, 13, 13, 0.95) 100%),
+            url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23b89b5e' fill-opacity='0.04' fill-rule='evenodd'%3E%3Cpath d='M30 30L15 0H0v15l30 30 30-30V0H45L30 30zM0 45h15l15-15 15 15h15V30L30 60 0 30v15z'/%3E%3C/g%3E%3C/svg%3E");
+        font-family: 'Shippori Mincho', serif;
         width: 100vw; height: 100vh; overflow: hidden;
         display: flex; flex-direction: column;
     }
+
     #top-bar {
-        height: 48px; background: rgba(0, 0, 0, 0.4);
+        height: 52px; background: rgba(21, 21, 21, 0.9);
+        border-bottom: 1px solid rgba(184, 155, 94, 0.3);
         display: flex; justify-content: space-between; align-items: center;
-        padding: 0 20px; color: #ffffff; font-weight: bold; font-size: 16px;
+        padding: 0 25px; color: #f3ebdd; font-size: 16px;
     }
+    .jp-title { font-weight: 800; letter-spacing: 0.2em; color: #f3ebdd; }
+    .jp-stats { font-family: 'Cinzel', serif; color: #b89b5e; font-size: 15px; }
+
     #game-board {
-        flex: 1; position: relative; width: 100%; height: calc(100vh - 96px);
+        flex: 1; position: relative; width: 100%; height: calc(100vh - 104px);
     }
+
     #bottom-bar {
-        height: 48px; background: rgba(0, 0, 0, 0.5);
+        height: 52px; background: rgba(15, 15, 15, 0.95);
+        border-top: 1px solid rgba(184, 155, 94, 0.2);
         display: flex; justify-content: center; align-items: center; gap: 20px;
     }
     .btn {
-        background: transparent; border: 1px solid rgba(255,255,255,0.3);
-        color: white; padding: 6px 16px; border-radius: 4px; cursor: pointer;
-        font-size: 14px; font-weight: bold; transition: all 0.2s;
+        background: linear-gradient(180deg, #243447 0%, #151515 100%);
+        color: #f3ebdd; border: 1px solid #b89b5e; padding: 6px 20px;
+        border-radius: 2px; cursor: pointer; font-family: 'Shippori Mincho', serif;
+        font-size: 14px; letter-spacing: 0.1em; transition: all 0.2s;
     }
-    .btn:hover { background: rgba(255,255,255,0.2); border-color: white; }
+    .btn:hover { background: #b83b32; color: #fff; border-color: #f3ebdd; }
 
-    /* Card Styling */
+    /* 카드 스타일링 */
     .card {
-        position: absolute; border-radius: 8px; background: white;
-        box-shadow: 2px 2px 6px rgba(0,0,0,0.4); cursor: pointer;
-        display: flex; flex-direction: column; justify-content: space-between;
-        padding: 6px; font-weight: bold; font-family: 'Arial', sans-serif;
-        transition: transform 0.1s; z-index: 10;
+        position: absolute; border-radius: 6px; background-color: #f3ebdd;
+        background-image: radial-gradient(#e5d9c5 1px, transparent 0); background-size: 8px 8px;
+        border: 1px solid #c8b9a6; box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+        cursor: grab; display: flex; flex-direction: column; justify-content: space-between;
+        padding: 6px; font-family: 'Cinzel', serif; font-weight: 700;
+        transition: transform 0.2s ease, left 0.25s ease-out, top 0.25s ease-out;
+        z-index: 10;
+    }
+    .card.dragging {
+        cursor: grabbing !important;
+        transition: none !important; /* 드래그 중에는 애니메이션 끄기 */
+        box-shadow: 0 10px 20px rgba(0,0,0,0.8), 0 0 12px rgba(184, 155, 94, 0.8) !important;
+        z-index: 9999 !important;
     }
     .card.back {
-        background: linear-gradient(135deg, #1e5799 0%,#207cca 51%,#7db9e8 100%);
-        border: 2px solid #ffffff;
+        background: #1a2634; border: 1px solid #b89b5e;
+        background-image: url("data:image/svg+xml,%3Csvg width='24' height='41.569' viewBox='0 0 24 41.569' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 0L0 6.928v13.856L12 27.713l12-6.929V6.928L12 0zm0 2.309l9.6 5.543v11.085L12 24.48 2.4 18.937V7.852L12 2.31zM12 27.713L0 34.641v6.928h24v-6.928l-12-6.928z' fill='%23b89b5e' fill-opacity='0.25'/%3E%3C/svg%3E");
+        cursor: pointer;
     }
-    .card.back::after {
-        content: ''; display: block; width: 100%; height: 100%;
-        border: 1px dashed rgba(255,255,255,0.5); border-radius: 4px;
-    }
-    .card.red { color: #d32f2f; }
-    .card.black { color: #212121; }
-    .card .corner { line-height: 1; text-align: center; }
-    .card .suit-center { font-size: 28px; text-align: center; margin-top: auto; margin-bottom: auto; }
+    .card.red { color: #b83b32; }
+    .card.black { color: #151515; }
+    .card .corner { line-height: 1; text-align: center; font-size: 0.9em; }
+    .card .suit-center { font-size: 1.8em; text-align: center; margin: auto; }
+
     .card-slot {
-        position: absolute; border-radius: 8px;
-        border: 2px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.1);
+        position: absolute; border-radius: 6px;
+        border: 1px dashed rgba(184, 155, 94, 0.3); background: rgba(21, 21, 21, 0.4);
+        display: flex; align-items: center; justify-content: center;
+        color: rgba(184, 155, 94, 0.3); font-size: 1rem;
     }
 </style>
 </head>
 <body>
 
 <div id="top-bar">
-    <div>Klondike 솔리테어</div>
-    <div>점수: <span id="score">0</span> &nbsp;&nbsp;|&nbsp;&nbsp; 시간: <span id="timer">00:00</span></div>
+    <div class="jp-title">クロンダイク — Klondike Solitaire</div>
+    <div class="jp-stats">점수: <span id="score">0</span> &nbsp;|&nbsp; 시간: <span id="timer">00:00</span></div>
 </div>
 
 <div id="game-board"></div>
 
 <div id="bottom-bar">
     <button class="btn" onclick="initGame()">새 게임</button>
-    <button class="btn" onclick="undoMove()">실행 취소</button>
+    <button class="btn" onclick="undoMove()">되돌리기 (Undo)</button>
 </div>
 
 <script>
@@ -99,7 +117,7 @@ const VALUES = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'
 
 let stock = [], waste = [], foundations = [[], [], [], []], tableau = [[], [], [], [], [], [], []];
 let history = [];
-let dragGroup = [], dragOffset = {x: 0, y: 0}, originalPos = [];
+let dragGroup = [], isDragging = false, dragStartX = 0, dragStartY = 0;
 let cardW = 0, cardH = 0, gap = 0, startY = 0;
 let timeSeconds = 0, timerInterval = null, score = 0;
 
@@ -110,19 +128,20 @@ function resizeBoard() {
     
     gap = w * 0.02;
     cardW = (w - (gap * 8)) / 7;
-    cardH = cardW * 1.4;
+    cardH = cardW * 1.45;
     
-    if (cardH * 4.5 > h) {
-        cardH = h / 4.5;
-        cardW = cardH / 1.4;
+    if (cardH * 4.2 > h) {
+        cardH = h / 4.2;
+        cardW = cardH / 1.45;
         gap = (w - (cardW * 7)) / 8;
     }
-    startY = cardH + gap * 1.5;
+    startY = cardH + gap * 1.2;
     render();
 }
 
 function initGame() {
     let deck = [];
+    let idCounter = 0;
     for (let s = 0; s < 4; s++) {
         for (let v = 1; v <= 13; v++) {
             deck.push({
@@ -131,7 +150,7 @@ function initGame() {
                 value: v,
                 name: VALUES[v-1],
                 faceUp: false,
-                id: s + '_' + v
+                uid: 'card_' + (idCounter++)
             });
         }
     }
@@ -139,9 +158,7 @@ function initGame() {
 
     tableau = [[], [], [], [], [], [], []];
     foundations = [[], [], [], []];
-    waste = [];
-    history = [];
-    score = 0;
+    waste = []; history = []; score = 0;
 
     for (let i = 0; i < 7; i++) {
         for (let j = 0; j <= i; j++) {
@@ -182,53 +199,53 @@ function render() {
     board.innerHTML = '';
     document.getElementById('score').innerText = score;
 
-    // Draw Slots
+    // 슬롯 배치
     let leftStock = gap;
-    createSlot(leftStock, gap, 'stock', () => handleStockClick());
+    createSlot(leftStock, gap, '空', () => handleStockClick());
     if (stock.length > 0) {
         let c = createCardEl(stock[stock.length - 1], leftStock, gap, false);
         c.onclick = handleStockClick;
     }
 
     let leftWaste = gap * 2 + cardW;
-    createSlot(leftWaste, gap, 'waste');
+    createSlot(leftWaste, gap, '捨');
     if (waste.length > 0) {
         let card = waste[waste.length - 1];
         let c = createCardEl(card, leftWaste, gap, true);
-        makeDraggable(c, card, 'waste', 0, waste.length - 1);
+        bindDragEvents(c, card, 'waste', 0, waste.length - 1);
     }
 
     for (let i = 0; i < 4; i++) {
         let leftF = gap * (4 + i) + cardW * (3 + i);
-        createSlot(leftF, gap, 'foundation');
+        createSlot(leftF, gap, '組');
         if (foundations[i].length > 0) {
             let card = foundations[i][foundations[i].length - 1];
             let c = createCardEl(card, leftF, gap, true);
-            makeDraggable(c, card, 'foundation', i, foundations[i].length - 1);
+            bindDragEvents(c, card, 'foundation', i, foundations[i].length - 1);
         }
     }
 
     for (let i = 0; i < 7; i++) {
         let leftT = gap * (1 + i) + cardW * i;
-        createSlot(leftT, startY, 'tableau');
+        createSlot(leftT, startY, '場');
         for (let j = 0; j < tableau[i].length; j++) {
             let card = tableau[i][j];
             let topT = startY + j * (cardH * 0.25);
             let c = createCardEl(card, leftT, topT, card.faceUp);
             if (card.faceUp) {
-                makeDraggable(c, card, 'tableau', i, j);
-                c.ondblclick = () => autoMove(card, i, j);
+                bindDragEvents(c, card, 'tableau', i, j);
             }
         }
     }
 }
 
-function createSlot(x, y, type, onClick) {
+function createSlot(x, y, label, onClick) {
     const board = document.getElementById('game-board');
     const slot = document.createElement('div');
     slot.className = 'card-slot';
     slot.style.width = cardW + 'px'; slot.style.height = cardH + 'px';
     slot.style.left = x + 'px'; slot.style.top = y + 'px';
+    slot.innerText = label;
     if (onClick) slot.onclick = onClick;
     board.appendChild(slot);
 }
@@ -236,6 +253,7 @@ function createSlot(x, y, type, onClick) {
 function createCardEl(card, x, y, faceUp) {
     const board = document.getElementById('game-board');
     const el = document.createElement('div');
+    el.id = card.uid;
     el.style.width = cardW + 'px'; el.style.height = cardH + 'px';
     el.style.left = x + 'px'; el.style.top = y + 'px';
 
@@ -266,45 +284,75 @@ function handleStockClick() {
     render();
 }
 
-function makeDraggable(el, card, srcType, colIdx, cardIdx) {
+function bindDragEvents(el, card, srcType, colIdx, cardIdx) {
+    let clickTime = 0;
+
     el.onmousedown = (e) => {
+        if (e.button !== 0) return; // 좌클릭만 허용
+        
+        // 더블클릭 판별 (자동 이동)
+        let now = new Date().getTime();
+        if (now - clickTime < 280) {
+            autoMove(card, srcType, colIdx, cardIdx);
+            clickTime = 0;
+            return;
+        }
+        clickTime = now;
+
         e.preventDefault();
-        saveState();
+        isDragging = true;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
 
         dragGroup = [];
         if (srcType === 'tableau') {
             for (let k = cardIdx; k < tableau[colIdx].length; k++) {
-                let cEl = getCardElement(tableau[colIdx][k].id);
-                dragGroup.push({ el: cEl, card: tableau[colIdx][k], origX: parseFloat(cEl.style.left), origY: parseFloat(cEl.style.top) });
+                let targetCard = tableau[colIdx][k];
+                let cEl = document.getElementById(targetCard.uid);
+                if (cEl) {
+                    cEl.classList.add('dragging');
+                    dragGroup.push({
+                        el: cEl,
+                        card: targetCard,
+                        origX: parseFloat(cEl.style.left),
+                        origY: parseFloat(cEl.style.top)
+                    });
+                }
             }
         } else {
-            dragGroup.push({ el, card, origX: parseFloat(el.style.left), origY: parseFloat(el.style.top) });
+            el.classList.add('dragging');
+            dragGroup.push({
+                el: el,
+                card: card,
+                origX: parseFloat(el.style.left),
+                origY: parseFloat(el.style.top)
+            });
         }
 
-        dragOffset.x = e.clientX;
-        dragOffset.y = e.clientY;
-
         document.onmousemove = (e) => {
-            let dx = e.clientX - dragOffset.x;
-            let dy = e.clientY - dragOffset.y;
+            if (!isDragging) return;
+            let dx = e.clientX - dragStartX;
+            let dy = e.clientY - dragStartY;
             dragGroup.forEach(item => {
                 item.el.style.left = (item.origX + dx) + 'px';
                 item.el.style.top = (item.origY + dy) + 'px';
-                item.el.style.zIndex = 1000;
             });
         };
 
         document.onmouseup = (e) => {
+            if (!isDragging) return;
+            isDragging = false;
             document.onmousemove = null;
             document.onmouseup = null;
 
+            dragGroup.forEach(item => item.el.classList.remove('dragging'));
+
             let dropped = checkDrop(card, srcType, colIdx, cardIdx, e.clientX, e.clientY);
             if (!dropped) {
-                history.pop();
+                // 원래 위치로 애니메이션과 함께 복귀
                 dragGroup.forEach(item => {
                     item.el.style.left = item.origX + 'px';
                     item.el.style.top = item.origY + 'px';
-                    item.el.style.zIndex = 10;
                 });
             } else {
                 render();
@@ -313,15 +361,15 @@ function makeDraggable(el, card, srcType, colIdx, cardIdx) {
     };
 }
 
-function autoMove(card, colIdx, cardIdx) {
-    if (cardIdx !== tableau[colIdx].length - 1) return;
+function autoMove(card, srcType, colIdx, cardIdx) {
+    if (srcType === 'tableau' && cardIdx !== tableau[colIdx].length - 1) return;
+    
     saveState();
     for (let f = 0; f < 4; f++) {
         let target = foundations[f];
         let topCard = target[target.length - 1];
         if ((!topCard && card.value === 1) || (topCard && topCard.suit === card.suit && topCard.value === card.value - 1)) {
-            target.push(tableau[colIdx].pop());
-            if (tableau[colIdx].length > 0) tableau[colIdx][tableau[colIdx].length - 1].faceUp = true;
+            target.push(removeSourceCard(srcType, colIdx, cardIdx)[0]);
             score += 10;
             render();
             return;
@@ -331,7 +379,7 @@ function autoMove(card, colIdx, cardIdx) {
 }
 
 function checkDrop(card, srcType, srcCol, srcIdx, mouseX, mouseY) {
-    // Check Foundations (Single Card Only)
+    // 1. Foundation 영역 확인
     if (dragGroup.length === 1) {
         for (let f = 0; f < 4; f++) {
             let leftF = gap * (4 + f) + cardW * (3 + f);
@@ -339,6 +387,7 @@ function checkDrop(card, srcType, srcCol, srcIdx, mouseX, mouseY) {
                 let target = foundations[f];
                 let topCard = target[target.length - 1];
                 if ((!topCard && card.value === 1) || (topCard && topCard.suit === card.suit && topCard.value === card.value - 1)) {
+                    saveState();
                     target.push(removeSourceCard(srcType, srcCol, srcIdx)[0]);
                     score += 10;
                     return true;
@@ -347,7 +396,7 @@ function checkDrop(card, srcType, srcCol, srcIdx, mouseX, mouseY) {
         }
     }
 
-    // Check Tableau
+    // 2. Tableau 영역 확인
     for (let t = 0; t < 7; t++) {
         let leftT = gap * (1 + t) + cardW * t;
         let targetCol = tableau[t];
@@ -355,7 +404,8 @@ function checkDrop(card, srcType, srcCol, srcIdx, mouseX, mouseY) {
         let topY = targetCol.length === 0 ? startY : startY + (targetCol.length - 1) * (cardH * 0.25);
 
         if (mouseX >= leftT && mouseX <= leftT + cardW && mouseY >= topY && mouseY <= topY + cardH * 1.5) {
-            if ((!topCard && card.value === 13) || (topCard && topCard.color !== card.color && topCard.value === card.value + 1)) {
+            if ((!topCard && card.value === 13) || (topCard && topCard.color !== card.color && topCard.value === card.value - 1)) {
+                saveState();
                 let movedCards = removeSourceCard(srcType, srcCol, srcIdx);
                 tableau[t] = tableau[t].concat(movedCards);
                 score += 5;
@@ -377,17 +427,6 @@ function removeSourceCard(type, col, idx) {
     return Array.isArray(cards) ? cards : [cards];
 }
 
-function getCardElement(id) {
-    // Find Element by Card Logic
-    let cards = document.getElementsByClassName('card');
-    for (let el of cards) {
-        if (el.innerHTML.includes(id.split('_')[0]) && el.innerHTML.includes(VALUES[parseInt(id.split('_')[1])-1])) {
-            return el;
-        }
-    }
-    return null;
-}
-
 window.onresize = resizeBoard;
 window.onload = initGame;
 </script>
@@ -395,4 +434,4 @@ window.onload = initGame;
 </html>
 """
 
-components.html(klondike_html, height=800, scrolling=False)
+components.html(klondike_japanese_html, height=800, scrolling=False)
