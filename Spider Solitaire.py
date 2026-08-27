@@ -8,7 +8,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Streamlit 전체 화면 및 여백 제거
+# Streamlit 여백 및 헤더 제거
 st.markdown("""
     <style>
     [data-testid="stHeader"], [data-testid="stToolbar"] { display: none !important; }
@@ -17,7 +17,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 일본풍 클론다이크 카드 게임 (드래그 & 애니메이션 완벽 구현)
 klondike_japanese_html = """
 <!DOCTYPE html>
 <html lang="ko">
@@ -46,9 +45,7 @@ klondike_japanese_html = """
     .jp-title { font-weight: 800; letter-spacing: 0.2em; color: #f3ebdd; }
     .jp-stats { font-family: 'Cinzel', serif; color: #b89b5e; font-size: 15px; }
 
-    #game-board {
-        flex: 1; position: relative; width: 100%; height: calc(100vh - 104px);
-    }
+    #game-board { flex: 1; position: relative; width: 100%; height: calc(100vh - 104px); }
 
     #bottom-bar {
         height: 52px; background: rgba(15, 15, 15, 0.95);
@@ -63,20 +60,18 @@ klondike_japanese_html = """
     }
     .btn:hover { background: #b83b32; color: #fff; border-color: #f3ebdd; }
 
-    /* 카드 스타일링 */
     .card {
         position: absolute; border-radius: 6px; background-color: #f3ebdd;
         background-image: radial-gradient(#e5d9c5 1px, transparent 0); background-size: 8px 8px;
         border: 1px solid #c8b9a6; box-shadow: 0 4px 10px rgba(0,0,0,0.6);
         cursor: grab; display: flex; flex-direction: column; justify-content: space-between;
         padding: 6px; font-family: 'Cinzel', serif; font-weight: 700;
-        transition: transform 0.2s ease, left 0.25s ease-out, top 0.25s ease-out;
+        transition: left 0.2s ease-out, top 0.2s ease-out;
         z-index: 10;
     }
     .card.dragging {
-        cursor: grabbing !important;
-        transition: none !important; /* 드래그 중에는 애니메이션 끄기 */
-        box-shadow: 0 10px 20px rgba(0,0,0,0.8), 0 0 12px rgba(184, 155, 94, 0.8) !important;
+        cursor: grabbing !important; transition: none !important;
+        box-shadow: 0 12px 24px rgba(0,0,0,0.8), 0 0 15px rgba(184, 155, 94, 0.9) !important;
         z-index: 9999 !important;
     }
     .card.back {
@@ -199,7 +194,6 @@ function render() {
     board.innerHTML = '';
     document.getElementById('score').innerText = score;
 
-    // 슬롯 배치
     let leftStock = gap;
     createSlot(leftStock, gap, '空', () => handleStockClick());
     if (stock.length > 0) {
@@ -288,9 +282,8 @@ function bindDragEvents(el, card, srcType, colIdx, cardIdx) {
     let clickTime = 0;
 
     el.onmousedown = (e) => {
-        if (e.button !== 0) return; // 좌클릭만 허용
+        if (e.button !== 0) return;
         
-        // 더블클릭 판별 (자동 이동)
         let now = new Date().getTime();
         if (now - clickTime < 280) {
             autoMove(card, srcType, colIdx, cardIdx);
@@ -312,20 +305,16 @@ function bindDragEvents(el, card, srcType, colIdx, cardIdx) {
                 if (cEl) {
                     cEl.classList.add('dragging');
                     dragGroup.push({
-                        el: cEl,
-                        card: targetCard,
-                        origX: parseFloat(cEl.style.left),
-                        origY: parseFloat(cEl.style.top)
+                        el: cEl, card: targetCard,
+                        origX: parseFloat(cEl.style.left), origY: parseFloat(cEl.style.top)
                     });
                 }
             }
         } else {
             el.classList.add('dragging');
             dragGroup.push({
-                el: el,
-                card: card,
-                origX: parseFloat(el.style.left),
-                origY: parseFloat(el.style.top)
+                el: el, card: card,
+                origX: parseFloat(el.style.left), origY: parseFloat(el.style.top)
             });
         }
 
@@ -349,7 +338,6 @@ function bindDragEvents(el, card, srcType, colIdx, cardIdx) {
 
             let dropped = checkDrop(card, srcType, colIdx, cardIdx, e.clientX, e.clientY);
             if (!dropped) {
-                // 원래 위치로 애니메이션과 함께 복귀
                 dragGroup.forEach(item => {
                     item.el.style.left = item.origX + 'px';
                     item.el.style.top = item.origY + 'px';
@@ -364,26 +352,41 @@ function bindDragEvents(el, card, srcType, colIdx, cardIdx) {
 function autoMove(card, srcType, colIdx, cardIdx) {
     if (srcType === 'tableau' && cardIdx !== tableau[colIdx].length - 1) return;
     
-    saveState();
+    // 1. Foundation 이동
     for (let f = 0; f < 4; f++) {
         let target = foundations[f];
         let topCard = target[target.length - 1];
         if ((!topCard && card.value === 1) || (topCard && topCard.suit === card.suit && topCard.value === card.value - 1)) {
+            saveState();
             target.push(removeSourceCard(srcType, colIdx, cardIdx)[0]);
             score += 10;
             render();
             return;
         }
     }
-    history.pop();
+
+    // 2. Tableau 이동 (J하트 위로 10클로버 이동 가능)
+    for (let t = 0; t < 7; t++) {
+        if (srcType === 'tableau' && t === colIdx) continue;
+        let targetCol = tableau[t];
+        let topCard = targetCol[targetCol.length - 1];
+        if ((!topCard && card.value === 13) || (topCard && topCard.color !== card.color && topCard.value === card.value + 1)) {
+            saveState();
+            let movedCards = removeSourceCard(srcType, colIdx, cardIdx);
+            tableau[t] = tableau[t].concat(movedCards);
+            score += 5;
+            render();
+            return;
+        }
+    }
 }
 
 function checkDrop(card, srcType, srcCol, srcIdx, mouseX, mouseY) {
-    // 1. Foundation 영역 확인
+    // 1. Foundation
     if (dragGroup.length === 1) {
         for (let f = 0; f < 4; f++) {
             let leftF = gap * (4 + f) + cardW * (3 + f);
-            if (mouseX >= leftF && mouseX <= leftF + cardW && mouseY >= gap && mouseY <= gap + cardH) {
+            if (mouseX >= leftF - 20 && mouseX <= leftF + cardW + 20 && mouseY >= gap - 20 && mouseY <= gap + cardH + 20) {
                 let target = foundations[f];
                 let topCard = target[target.length - 1];
                 if ((!topCard && card.value === 1) || (topCard && topCard.suit === card.suit && topCard.value === card.value - 1)) {
@@ -396,15 +399,16 @@ function checkDrop(card, srcType, srcCol, srcIdx, mouseX, mouseY) {
         }
     }
 
-    // 2. Tableau 영역 확인
+    // 2. Tableau 드롭 판정 (드롭 가능 범위를 더 넉넉하게 확장)
     for (let t = 0; t < 7; t++) {
         let leftT = gap * (1 + t) + cardW * t;
         let targetCol = tableau[t];
         let topCard = targetCol[targetCol.length - 1];
-        let topY = targetCol.length === 0 ? startY : startY + (targetCol.length - 1) * (cardH * 0.25);
-
-        if (mouseX >= leftT && mouseX <= leftT + cardW && mouseY >= topY && mouseY <= topY + cardH * 1.5) {
-            if ((!topCard && card.value === 13) || (topCard && topCard.color !== card.color && topCard.value === card.value - 1)) {
+        
+        // 해당 열의 전체 영역 감지
+        if (mouseX >= leftT - 15 && mouseX <= leftT + cardW + 15) {
+            // 빈 공간(K) 또는 숫자가 1 크고 색상이 다른 카드의 위
+            if ((!topCard && card.value === 13) || (topCard && topCard.color !== card.color && topCard.value === card.value + 1)) {
                 saveState();
                 let movedCards = removeSourceCard(srcType, srcCol, srcIdx);
                 tableau[t] = tableau[t].concat(movedCards);
