@@ -46,12 +46,28 @@ klondike_full_html = """
         width: 100%; height: 100%; overflow: hidden;
         background-color: #0c0d10;
         background-image: 
-            radial-gradient(circle at 50% 30%, rgba(184, 155, 94, 0.18) 0%, rgba(12, 13, 16, 0.98) 80%),
-            radial-gradient(circle at 10% 90%, rgba(184, 59, 50, 0.15) 0%, transparent 50%),
-            radial-gradient(circle at 90% 10%, rgba(36, 52, 71, 0.25) 0%, transparent 50%),
+            radial-gradient(circle at 50% 35%, rgba(184, 155, 94, 0.22) 0%, rgba(12, 13, 16, 0.98) 75%),
+            radial-gradient(circle at 10% 90%, rgba(184, 59, 50, 0.18) 0%, transparent 50%),
+            radial-gradient(circle at 90% 10%, rgba(36, 52, 71, 0.3) 0%, transparent 50%),
             url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23d4af37' fill-opacity='0.06' fill-rule='evenodd'%3E%3Cpath d='M0 0h40v40H0V0zm40 40h40v40H40V40zm0-40h40v40H40V0zM0 40h40v40H0V40z'/%3E%3Ccircle cx='40' cy='40' r='18' stroke='%23d4af37' stroke-opacity='0.08' stroke-width='2' fill='none'/%3E%3C/g%3E%3C/svg%3E");
         font-family: 'Shippori Mincho', serif;
         display: flex; flex-direction: column;
+        position: relative;
+    }
+
+    /* 양쪽 사이드 벚꽃 나뭇가지 배경 그래픽 */
+    .cherry-branch {
+        position: absolute; top: 50px; pointer-events: none; z-index: 5; opacity: 0.85;
+    }
+    .cherry-left {
+        left: -10px; width: 280px; height: 280px;
+        background: radial-gradient(circle at 20% 20%, rgba(255, 183, 197, 0.25) 0%, transparent 70%);
+        filter: drop-shadow(0 0 10px rgba(255, 183, 197, 0.3));
+    }
+    .cherry-right {
+        right: -10px; width: 280px; height: 280px; transform: scaleX(-1);
+        background: radial-gradient(circle at 20% 20%, rgba(255, 183, 197, 0.25) 0%, transparent 70%);
+        filter: drop-shadow(0 0 10px rgba(255, 183, 197, 0.3));
     }
 
     #top-bar {
@@ -59,16 +75,15 @@ klondike_full_html = """
         border-bottom: 1px solid rgba(212, 175, 55, 0.4);
         box-shadow: 0 2px 10px rgba(0,0,0,0.5);
         display: flex; justify-content: space-between; align-items: center;
-        padding: 0 20px; color: #f3ebdd; font-size: 16px; z-index: 100;
+        padding: 0 25px; color: #f3ebdd; font-size: 16px; z-index: 100;
         flex-shrink: 0;
     }
     .jp-title { font-weight: 800; letter-spacing: 0.25em; color: #f3ebdd; text-shadow: 0 0 8px rgba(212,175,55,0.3); }
     .jp-stats { font-family: 'Cinzel', serif; color: #d4af37; font-size: 15px; }
 
-    /* 전체 화면 배경에 꽉 차게 조절 (스크롤 없이 카드가 다 들어오도록) */
     #game-board { 
         flex: 1; position: relative; width: 100%; height: 100%;
-        overflow: hidden;
+        overflow: hidden; z-index: 10;
     }
 
     #bottom-bar {
@@ -97,25 +112,25 @@ klondike_full_html = """
     }
     #auto-btn:hover { transform: translateX(-50%) scale(1.05); background: #fff8dc; }
 
-    /* 카드 사이즈 축소 및 디테일 조정 */
+    /* 카드 사이즈 미세 확대 */
     .card {
-        position: absolute; border-radius: 5px; background-color: #f3ebdd;
+        position: absolute; border-radius: 6px; background-color: #f3ebdd;
         background-image: radial-gradient(#e5d9c5 1px, transparent 0); background-size: 6px 6px;
-        border: 1px solid #c8b9a6; box-shadow: 0 3px 8px rgba(0,0,0,0.6);
+        border: 1px solid #c8b9a6; box-shadow: 0 4px 10px rgba(0,0,0,0.6);
         cursor: grab; display: flex; flex-direction: column; justify-content: space-between;
-        padding: 3px; font-family: 'Cinzel', serif; font-weight: 700;
+        padding: 4px; font-family: 'Cinzel', serif; font-weight: 700;
         transition: left 0.15s ease-out, top 0.15s ease-out, box-shadow 0.2s ease, border-color 0.2s ease;
         z-index: 10;
     }
     .card.selected {
         border: 2px solid #ffd700 !important;
-        box-shadow: 0 0 15px rgba(255, 215, 0, 0.95) !important;
-        transform: translateY(-2px);
+        box-shadow: 0 0 16px rgba(255, 215, 0, 0.95) !important;
+        transform: translateY(-3px);
         z-index: 8000 !important;
     }
     .card.dragging {
         cursor: grabbing !important; transition: none !important;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.8), 0 0 15px rgba(212, 175, 55, 0.9) !important;
+        box-shadow: 0 12px 24px rgba(0,0,0,0.8), 0 0 18px rgba(212, 175, 55, 0.9) !important;
         z-index: 9999 !important;
     }
     .card.highlight {
@@ -133,14 +148,14 @@ klondike_full_html = """
     }
     .card.red { color: #b83b32; }
     .card.black { color: #151515; }
-    .card .corner { line-height: 1; text-align: center; font-size: 0.75em; }
-    .card .suit-center { font-size: 1.2em; text-align: center; margin: auto; }
+    .card .corner { line-height: 1; text-align: center; font-size: 0.8em; }
+    .card .suit-center { font-size: 1.35em; text-align: center; margin: auto; }
 
     .card-slot {
-        position: absolute; border-radius: 5px;
+        position: absolute; border-radius: 6px;
         border: 1px dashed rgba(212, 175, 55, 0.4); background: rgba(20, 20, 25, 0.5);
         display: flex; align-items: center; justify-content: center;
-        color: rgba(212, 175, 55, 0.4); font-size: 0.8rem;
+        color: rgba(212, 175, 55, 0.4); font-size: 0.85rem;
     }
 
     #anim-container {
@@ -149,7 +164,7 @@ klondike_full_html = """
     }
     .sakura {
         position: absolute; background: #ffb7c5; border-radius: 100% 0 100% 0;
-        opacity: 0.8; animation: fall 4s linear infinite;
+        opacity: 0.85; animation: fall 4s linear infinite;
     }
     @keyframes fall {
         0% { transform: translateY(-10vh) rotate(0deg); opacity: 0.9; }
@@ -179,6 +194,26 @@ klondike_full_html = """
 </style>
 </head>
 <body>
+
+<!-- 양 사이드 벚꽃 나뭇가지 SVG 요소 -->
+<svg class="cherry-branch cherry-left" viewBox="0 0 200 200">
+    <path d="M 0 0 Q 60 40 120 20 T 180 60" stroke="#3a2312" stroke-width="5" fill="none" />
+    <path d="M 60 40 Q 90 70 110 100" stroke="#3a2312" stroke-width="3" fill="none" />
+    <circle cx="120" cy="20" r="12" fill="#ffc0cb" opacity="0.8" />
+    <circle cx="125" cy="15" r="8" fill="#ffb7c5" opacity="0.9" />
+    <circle cx="180" cy="60" r="14" fill="#ffc0cb" opacity="0.8" />
+    <circle cx="110" cy="100" r="10" fill="#ffb7c5" opacity="0.8" />
+    <circle cx="70" cy="45" r="9" fill="#ffc0cb" opacity="0.85" />
+</svg>
+<svg class="cherry-branch cherry-right" viewBox="0 0 200 200">
+    <path d="M 0 0 Q 60 40 120 20 T 180 60" stroke="#3a2312" stroke-width="5" fill="none" />
+    <path d="M 60 40 Q 90 70 110 100" stroke="#3a2312" stroke-width="3" fill="none" />
+    <circle cx="120" cy="20" r="12" fill="#ffc0cb" opacity="0.8" />
+    <circle cx="125" cy="15" r="8" fill="#ffb7c5" opacity="0.9" />
+    <circle cx="180" cy="60" r="14" fill="#ffc0cb" opacity="0.8" />
+    <circle cx="110" cy="100" r="10" fill="#ffb7c5" opacity="0.8" />
+    <circle cx="70" cy="45" r="9" fill="#ffc0cb" opacity="0.85" />
+</svg>
 
 <div id="top-bar">
     <div class="jp-title">クロンダイク — Klondike Solitaire</div>
@@ -213,7 +248,7 @@ const VALUES = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'
 let stock = [], waste = [], foundations = [[], [], [], []], tableau = [[], [], [], [], [], [], []];
 let history = [];
 let dragGroup = [], isDragging = false, dragStartX = 0, dragStartY = 0;
-let cardW = 0, cardH = 0, gap = 0, startY = 0;
+let cardW = 0, cardH = 0, gap = 0, startY = 0, offsetX = 0;
 let timeSeconds = 0, timerInterval = null, score = 0, isGameWon = false;
 let selectedInfo = null;
 
@@ -222,21 +257,21 @@ function clearSelection() {
     document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
 }
 
-/* K~A까지 13장이 모두 나열되어도 잘리지 않도록 카드 크기와 세로 간격 축소 */
+/* 중앙 대칭 배치 및 카드가 조금 더 풍성해 보이도록 크기 보정 */
 function resizeBoard() {
     const board = document.getElementById('game-board');
     const w = board.clientWidth;
-    const h = board.clientHeight;
     
-    // 카드 크기 및 간격을 더 콤팩트하게 계산
-    gap = w * 0.02; 
-    cardW = (w - (gap * 8)) / 7; 
-    
-    // 높이 한계에 맞추어 카드 크기 조정 (K~A까지 13장 나열 보장)
-    if (cardW > 75) cardW = 75; 
-    cardH = cardW * 1.4;
+    // 카드 가로폭을 조금 확대 (최대 82px)
+    cardW = Math.min((w * 0.88) / 7.8, 82); 
+    cardH = cardW * 1.42;
+    gap = cardW * 0.18; 
 
-    startY = cardH + gap; 
+    // 전체 게임판 너비 계산 후 화면 중앙 오프셋 적용 (가운데 대칭)
+    let totalWidth = (cardW * 7) + (gap * 6);
+    offsetX = Math.max((w - totalWidth) / 2, 15);
+
+    startY = cardH + gap * 1.2; 
     render();
 }
 
@@ -309,14 +344,15 @@ function render() {
         if (e.target === board) clearSelection();
     };
 
-    let leftStock = gap;
+    // 상단 스택 중앙 정렬 적용
+    let leftStock = offsetX;
     createSlot(leftStock, gap, '空', () => handleStockClick());
     if (stock.length > 0) {
         let c = createCardEl(stock[stock.length - 1], leftStock, gap, false);
         c.onclick = (e) => { e.stopPropagation(); handleStockClick(); };
     }
 
-    let leftWaste = gap * 2 + cardW;
+    let leftWaste = offsetX + cardW + gap;
     createSlot(leftWaste, gap, '捨', () => tryMoveSelectedTo('waste', 0));
     if (waste.length > 0) {
         let card = waste[waste.length - 1];
@@ -325,7 +361,7 @@ function render() {
     }
 
     for (let i = 0; i < 4; i++) {
-        let leftF = gap * (4 + i) + cardW * (3 + i);
+        let leftF = offsetX + (cardW + gap) * (3 + i);
         createSlot(leftF, gap, '組', () => tryMoveSelectedTo('foundation', i));
         if (foundations[i].length > 0) {
             let card = foundations[i][foundations[i].length - 1];
@@ -334,10 +370,10 @@ function render() {
         }
     }
 
-    // K부터 A까지 13장의 카드가 세로로 깔려도 완전히 보이도록 오프셋 축소
-    const cardSpacing = 18; // 세로 겹침 폭을 다소 좁혀 화면 이탈 방지
+    // 하단 7개 칼럼 중앙 대칭 배치 및 K~A 시독성 보장
+    const cardSpacing = Math.min(cardH * 0.22, 22); 
     for (let i = 0; i < 7; i++) {
-        let leftT = gap * (1 + i) + cardW * i;
+        let leftT = offsetX + (cardW + gap) * i;
         createSlot(leftT, startY, '場', () => tryMoveSelectedTo('tableau', i));
         
         for (let j = 0; j < tableau[i].length; j++) {
@@ -563,7 +599,7 @@ function autoMove(card, srcType, colIdx, cardIdx) {
 function checkDrop(card, srcType, srcCol, srcIdx, mouseX, mouseY) {
     if (dragGroup.length === 1) {
         for (let f = 0; f < 4; f++) {
-            let leftF = gap * (4 + f) + cardW * (3 + f);
+            let leftF = offsetX + (cardW + gap) * (3 + f);
             if (mouseX >= leftF - 20 && mouseX <= leftF + cardW + 20 && mouseY >= gap - 20 && mouseY <= gap + cardH + 20) {
                 let target = foundations[f]; let topCard = target[target.length - 1];
                 if ((!topCard && card.value === 1) || (topCard && topCard.suit === card.suit && topCard.value === card.value - 1)) {
@@ -574,7 +610,7 @@ function checkDrop(card, srcType, srcCol, srcIdx, mouseX, mouseY) {
         }
     }
     for (let t = 0; t < 7; t++) {
-        let leftT = gap * (1 + t) + cardW * t;
+        let leftT = offsetX + (cardW + gap) * t;
         let targetCol = tableau[t]; let topCard = targetCol[targetCol.length - 1];
         if (mouseX >= leftT - 15 && mouseX <= leftT + cardW + 15) {
             if ((!topCard && card.value === 13) || (topCard && topCard.color !== card.color && topCard.value === card.value + 1)) {
@@ -614,7 +650,7 @@ function showHint() {
         let tCard = tableau[t][tableau[t].length - 1];
         for (let f = 0; f < 4; f++) {
             let topCard = foundations[f][foundations[f].length - 1];
-            if ((!topCard && tCard.value === 1) || (topCard && tCard.suit === topCard.suit && topCard.value === tCard.value - 1)) {
+            if ((!topCard && tCard.value === 1) || (topCard && tCard.suit === topCard.suit && topCard.value === topCard.value - 1)) {
                 document.getElementById(tCard.uid)?.classList.add('highlight'); return;
             }
         }
