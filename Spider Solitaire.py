@@ -65,11 +65,10 @@ klondike_full_html = """
     .jp-title { font-weight: 800; letter-spacing: 0.25em; color: #f3ebdd; text-shadow: 0 0 8px rgba(212,175,55,0.3); }
     .jp-stats { font-family: 'Cinzel', serif; color: #d4af37; font-size: 15px; }
 
-    /* 배경 크기 확장: 세로 스크롤 가능하도록 overflow-y 처리 및 넉넉한 높이 확보 */
+    /* 전체 화면 배경에 꽉 차게 조절 (스크롤 없이 카드가 다 들어오도록) */
     #game-board { 
         flex: 1; position: relative; width: 100%; height: 100%;
-        overflow-y: auto; overflow-x: hidden;
-        padding-bottom: 100px;
+        overflow: hidden;
     }
 
     #bottom-bar {
@@ -98,24 +97,25 @@ klondike_full_html = """
     }
     #auto-btn:hover { transform: translateX(-50%) scale(1.05); background: #fff8dc; }
 
+    /* 카드 사이즈 축소 및 디테일 조정 */
     .card {
-        position: absolute; border-radius: 6px; background-color: #f3ebdd;
-        background-image: radial-gradient(#e5d9c5 1px, transparent 0); background-size: 8px 8px;
-        border: 1px solid #c8b9a6; box-shadow: 0 4px 10px rgba(0,0,0,0.7);
+        position: absolute; border-radius: 5px; background-color: #f3ebdd;
+        background-image: radial-gradient(#e5d9c5 1px, transparent 0); background-size: 6px 6px;
+        border: 1px solid #c8b9a6; box-shadow: 0 3px 8px rgba(0,0,0,0.6);
         cursor: grab; display: flex; flex-direction: column; justify-content: space-between;
-        padding: 5px; font-family: 'Cinzel', serif; font-weight: 700;
+        padding: 3px; font-family: 'Cinzel', serif; font-weight: 700;
         transition: left 0.15s ease-out, top 0.15s ease-out, box-shadow 0.2s ease, border-color 0.2s ease;
         z-index: 10;
     }
     .card.selected {
         border: 2px solid #ffd700 !important;
-        box-shadow: 0 0 18px rgba(255, 215, 0, 0.95), 0 0 30px rgba(255, 215, 0, 0.5) !important;
-        transform: translateY(-4px);
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.95) !important;
+        transform: translateY(-2px);
         z-index: 8000 !important;
     }
     .card.dragging {
         cursor: grabbing !important; transition: none !important;
-        box-shadow: 0 14px 28px rgba(0,0,0,0.8), 0 0 20px rgba(212, 175, 55, 0.9) !important;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.8), 0 0 15px rgba(212, 175, 55, 0.9) !important;
         z-index: 9999 !important;
     }
     .card.highlight {
@@ -124,7 +124,7 @@ klondike_full_html = """
     }
     @keyframes hintPulse {
         0% { transform: scale(1); box-shadow: 0 0 5px #b83b32; }
-        100% { transform: scale(1.06); box-shadow: 0 0 20px #b83b32; }
+        100% { transform: scale(1.05); box-shadow: 0 0 15px #b83b32; }
     }
     .card.back {
         background: #141f2c; border: 1px solid #d4af37;
@@ -133,14 +133,14 @@ klondike_full_html = """
     }
     .card.red { color: #b83b32; }
     .card.black { color: #151515; }
-    .card .corner { line-height: 1; text-align: center; font-size: 0.85em; }
-    .card .suit-center { font-size: 1.6em; text-align: center; margin: auto; }
+    .card .corner { line-height: 1; text-align: center; font-size: 0.75em; }
+    .card .suit-center { font-size: 1.2em; text-align: center; margin: auto; }
 
     .card-slot {
-        position: absolute; border-radius: 6px;
+        position: absolute; border-radius: 5px;
         border: 1px dashed rgba(212, 175, 55, 0.4); background: rgba(20, 20, 25, 0.5);
         display: flex; align-items: center; justify-content: center;
-        color: rgba(212, 175, 55, 0.4); font-size: 0.9rem;
+        color: rgba(212, 175, 55, 0.4); font-size: 0.8rem;
     }
 
     #anim-container {
@@ -222,23 +222,21 @@ function clearSelection() {
     document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
 }
 
-/* 카드 크기는 보존하면서, 많은 카드가 세로로 깔려도 가려지지 않도록 계산식 수정 */
+/* K~A까지 13장이 모두 나열되어도 잘리지 않도록 카드 크기와 세로 간격 축소 */
 function resizeBoard() {
     const board = document.getElementById('game-board');
     const w = board.clientWidth;
+    const h = board.clientHeight;
     
+    // 카드 크기 및 간격을 더 콤팩트하게 계산
     gap = w * 0.02; 
     cardW = (w - (gap * 8)) / 7; 
-    cardH = cardW * 1.45;
     
-    // 최소 카드 사이즈 보장
-    if (cardW < 70) {
-        cardW = 70;
-        cardH = 101.5;
-        gap = (w - (cardW * 7)) / 8;
-    }
-    
-    startY = cardH + gap * 1.2; 
+    // 높이 한계에 맞추어 카드 크기 조정 (K~A까지 13장 나열 보장)
+    if (cardW > 75) cardW = 75; 
+    cardH = cardW * 1.4;
+
+    startY = cardH + gap; 
     render();
 }
 
@@ -336,18 +334,15 @@ function render() {
         }
     }
 
-    // 세로 겹침 간격을 조절하여 K부터 5, A까지 펼쳐져도 가려지지 않도록 수정
-    let maxTableauHeight = startY + cardH;
+    // K부터 A까지 13장의 카드가 세로로 깔려도 완전히 보이도록 오프셋 축소
+    const cardSpacing = 18; // 세로 겹침 폭을 다소 좁혀 화면 이탈 방지
     for (let i = 0; i < 7; i++) {
         let leftT = gap * (1 + i) + cardW * i;
         createSlot(leftT, startY, '場', () => tryMoveSelectedTo('tableau', i));
         
-        let cardSpacing = Math.min(cardH * 0.25, 28); // 겹침 간격 최적화
-        
         for (let j = 0; j < tableau[i].length; j++) {
             let card = tableau[i][j];
             let topT = startY + j * cardSpacing;
-            if (topT + cardH > maxTableauHeight) maxTableauHeight = topT + cardH;
 
             let c = createCardEl(card, leftT, topT, card.faceUp);
             if (card.faceUp) {
@@ -355,9 +350,6 @@ function render() {
             }
         }
     }
-    
-    // 카드가 많아지면 보드 컨테이너 높이를 자동으로 넓혀 스크롤 보장
-    board.style.minHeight = (maxTableauHeight + 80) + 'px';
 
     if (selectedInfo) {
         let selEl = document.getElementById(selectedInfo.card.uid);
@@ -663,7 +655,7 @@ function runAutoComplete() {
                 let card = tableau[t][tableau[t].length - 1];
                 for (let f = 0; f < 4; f++) {
                     let topCard = foundations[f][foundations[f].length - 1];
-                    if ((!topCard && card.value === 1) || (topCard && topCard.suit === card.suit && topCard.value === card.value - 1)) {
+                    if ((!topCard && card.value === 1) || (topCard && card.suit === topCard.suit && topCard.value === topCard.value - 1)) {
                         foundations[f].push(tableau[t].pop()); score += 10; moved = true; break;
                     }
                 }
@@ -728,4 +720,4 @@ window.onload = () => {
 </html>
 """
 
-components.html(klondike_full_html, height=850, scrolling=True)
+components.html(klondike_full_html, height=850, scrolling=False)
