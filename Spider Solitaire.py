@@ -45,23 +45,27 @@ klondike_full_html = """
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
     html, body {
         width: 100%; height: 100%; overflow: hidden;
-        background-color: #0d0d0d;
+        background-color: #0c0d10;
+        /* 화려한 황금/전통 문양 입체 배경 */
         background-image: 
-            radial-gradient(circle at 50% 50%, rgba(36, 52, 71, 0.3) 0%, rgba(13, 13, 13, 0.95) 100%),
-            url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23b89b5e' fill-opacity='0.04' fill-rule='evenodd'%3E%3Cpath d='M30 30L15 0H0v15l30 30 30-30V0H45L30 30zM0 45h15l15-15 15 15h15V30L30 60 0 30v15z'/%3E%3C/g%3E%3C/svg%3E");
+            radial-gradient(circle at 50% 30%, rgba(184, 155, 94, 0.18) 0%, rgba(12, 13, 16, 0.98) 80%),
+            radial-gradient(circle at 10% 90%, rgba(184, 59, 50, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 90% 10%, rgba(36, 52, 71, 0.25) 0%, transparent 50%),
+            url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23d4af37' fill-opacity='0.06' fill-rule='evenodd'%3E%3Cpath d='M0 0h40v40H0V0zm40 40h40v40H40V40zm0-40h40v40H40V0zM0 40h40v40H0V40z'/%3E%3Ccircle cx='40' cy='40' r='18' stroke='%23d4af37' stroke-opacity='0.08' stroke-width='2' fill='none'/%3E%3C/g%3E%3C/svg%3E");
         font-family: 'Shippori Mincho', serif;
         display: flex; flex-direction: column;
     }
 
     #top-bar {
-        height: 50px; background: rgba(21, 21, 21, 0.9);
-        border-bottom: 1px solid rgba(184, 155, 94, 0.3);
+        height: 50px; background: rgba(15, 15, 18, 0.92);
+        border-bottom: 1px solid rgba(212, 175, 55, 0.4);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.5);
         display: flex; justify-content: space-between; align-items: center;
         padding: 0 20px; color: #f3ebdd; font-size: 16px; z-index: 100;
         flex-shrink: 0;
     }
-    .jp-title { font-weight: 800; letter-spacing: 0.2em; color: #f3ebdd; }
-    .jp-stats { font-family: 'Cinzel', serif; color: #b89b5e; font-size: 15px; }
+    .jp-title { font-weight: 800; letter-spacing: 0.25em; color: #f3ebdd; text-shadow: 0 0 8px rgba(212,175,55,0.3); }
+    .jp-stats { font-family: 'Cinzel', serif; color: #d4af37; font-size: 15px; }
 
     #game-board { 
         flex: 1; position: relative; width: 100%; height: 100%;
@@ -69,44 +73,51 @@ klondike_full_html = """
     }
 
     #bottom-bar {
-        height: 50px; background: rgba(15, 15, 15, 0.95);
-        border-top: 1px solid rgba(184, 155, 94, 0.2);
+        height: 50px; background: rgba(12, 12, 15, 0.95);
+        border-top: 1px solid rgba(212, 175, 55, 0.3);
         display: flex; justify-content: center; align-items: center; gap: 15px; z-index: 100;
         flex-shrink: 0;
     }
     .btn {
-        background: linear-gradient(180deg, #243447 0%, #151515 100%);
-        color: #f3ebdd; border: 1px solid #b89b5e; padding: 6px 18px;
-        border-radius: 2px; cursor: pointer; font-family: 'Shippori Mincho', serif;
+        background: linear-gradient(180deg, #1c2836 0%, #0d0d10 100%);
+        color: #f3ebdd; border: 1px solid #d4af37; padding: 6px 18px;
+        border-radius: 3px; cursor: pointer; font-family: 'Shippori Mincho', serif;
         font-size: 14px; letter-spacing: 0.1em; transition: all 0.2s;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.4);
     }
-    .btn:hover { background: #b83b32; color: #fff; border-color: #f3ebdd; }
+    .btn:hover { background: #b83b32; color: #fff; border-color: #f3ebdd; box-shadow: 0 0 10px rgba(184,59,50,0.6); }
 
     /* 자동 완성 버튼 UI */
     #auto-btn {
         position: absolute; left: 50%; transform: translateX(-50%);
         top: 12px; display: none; z-index: 500;
-        background: linear-gradient(180deg, #b89b5e 0%, #7a612d 100%);
+        background: linear-gradient(180deg, #ffd700 0%, #997a00 100%);
         color: #0d0d0d; font-weight: 800; font-size: 14px;
-        padding: 6px 20px; border: 2px solid #f3ebdd; border-radius: 4px;
-        box-shadow: 0 0 15px rgba(184, 155, 94, 0.6); cursor: pointer;
+        padding: 6px 22px; border: 2px solid #fff8dc; border-radius: 4px;
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); cursor: pointer;
         transition: all 0.2s;
     }
-    #auto-btn:hover { transform: translateX(-50%) scale(1.05); background: #f3ebdd; }
+    #auto-btn:hover { transform: translateX(-50%) scale(1.05); background: #fff8dc; }
 
-    /* 카드 스타일 */
+    /* 카드 스타일 및 황금빛 클릭 효과 */
     .card {
         position: absolute; border-radius: 6px; background-color: #f3ebdd;
         background-image: radial-gradient(#e5d9c5 1px, transparent 0); background-size: 8px 8px;
-        border: 1px solid #c8b9a6; box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+        border: 1px solid #c8b9a6; box-shadow: 0 4px 10px rgba(0,0,0,0.7);
         cursor: grab; display: flex; flex-direction: column; justify-content: space-between;
         padding: 5px; font-family: 'Cinzel', serif; font-weight: 700;
-        transition: left 0.15s ease-out, top 0.15s ease-out;
+        transition: left 0.15s ease-out, top 0.15s ease-out, box-shadow 0.2s ease, border-color 0.2s ease;
         z-index: 10;
+    }
+    .card.selected {
+        border: 2px solid #ffd700 !important;
+        box-shadow: 0 0 18px rgba(255, 215, 0, 0.95), 0 0 30px rgba(255, 215, 0, 0.5) !important;
+        transform: translateY(-4px);
+        z-index: 8000 !important;
     }
     .card.dragging {
         cursor: grabbing !important; transition: none !important;
-        box-shadow: 0 12px 24px rgba(0,0,0,0.8), 0 0 15px rgba(184, 155, 94, 0.9) !important;
+        box-shadow: 0 14px 28px rgba(0,0,0,0.8), 0 0 20px rgba(212, 175, 55, 0.9) !important;
         z-index: 9999 !important;
     }
     .card.highlight {
@@ -118,8 +129,8 @@ klondike_full_html = """
         100% { transform: scale(1.06); box-shadow: 0 0 20px #b83b32; }
     }
     .card.back {
-        background: #1a2634; border: 1px solid #b89b5e;
-        background-image: url("data:image/svg+xml,%3Csvg width='24' height='41.569' viewBox='0 0 24 41.569' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 0L0 6.928v13.856L12 27.713l12-6.929V6.928L12 0zm0 2.309l9.6 5.543v11.085L12 24.48 2.4 18.937V7.852L12 2.31zM12 27.713L0 34.641v6.928h24v-6.928l-12-6.928z' fill='%23b89b5e' fill-opacity='0.25'/%3E%3C/svg%3E");
+        background: #141f2c; border: 1px solid #d4af37;
+        background-image: url("data:image/svg+xml,%3Csvg width='24' height='41.569' viewBox='0 0 24 41.569' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 0L0 6.928v13.856L12 27.713l12-6.929V6.928L12 0zm0 2.309l9.6 5.543v11.085L12 24.48 2.4 18.937V7.852L12 2.31zM12 27.713L0 34.641v6.928h24v-6.928l-12-6.928z' fill='%23d4af37' fill-opacity='0.3'/%3E%3C/svg%3E");
         cursor: pointer;
     }
     .card.red { color: #b83b32; }
@@ -129,9 +140,9 @@ klondike_full_html = """
 
     .card-slot {
         position: absolute; border-radius: 6px;
-        border: 1px dashed rgba(184, 155, 94, 0.3); background: rgba(21, 21, 21, 0.4);
+        border: 1px dashed rgba(212, 175, 55, 0.4); background: rgba(20, 20, 25, 0.5);
         display: flex; align-items: center; justify-content: center;
-        color: rgba(184, 155, 94, 0.3); font-size: 0.9rem;
+        color: rgba(212, 175, 55, 0.4); font-size: 0.9rem;
     }
 
     /* 승리 일본풍 애니메이션 */
@@ -149,8 +160,8 @@ klondike_full_html = """
     }
     .balloon {
         position: absolute; width: 45px; height: 45px; border-radius: 50%;
-        background: conic-gradient(#b83b32 0 90deg, #f3ebdd 90deg 180deg, #243447 180deg 270deg, #b89b5e 270deg 360deg);
-        box-shadow: inset 0 0 8px rgba(0,0,0,0.3); opacity: 0.9;
+        background: conic-gradient(#b83b32 0 90deg, #f3ebdd 90deg 180deg, #1c2836 180deg 270deg, #d4af37 270deg 360deg);
+        box-shadow: inset 0 0 8px rgba(0,0,0,0.4); opacity: 0.9;
         animation: floatUp 6s ease-in infinite;
     }
     @keyframes floatUp {
@@ -161,12 +172,12 @@ klondike_full_html = """
     /* 승리 모달 창 */
     #win-modal {
         position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-        background: rgba(13, 13, 13, 0.95); border: 2px solid #b89b5e;
+        background: rgba(12, 12, 15, 0.96); border: 2px solid #d4af37;
         padding: 30px 45px; text-align: center; color: #f3ebdd;
-        box-shadow: 0 0 30px rgba(0,0,0,0.9), 0 0 15px rgba(184, 155, 94, 0.5);
+        box-shadow: 0 0 40px rgba(0,0,0,0.95), 0 0 20px rgba(212, 175, 55, 0.6);
         z-index: 3000; display: none; border-radius: 4px;
     }
-    #win-modal h2 { font-weight: 800; color: #b89b5e; letter-spacing: 0.3em; margin-bottom: 12px; font-size: 22px; }
+    #win-modal h2 { font-weight: 800; color: #d4af37; letter-spacing: 0.3em; margin-bottom: 12px; font-size: 22px; }
     #win-modal p { font-size: 15px; margin: 6px 0; color: #f3ebdd; }
     #win-modal .modal-btn { margin-top: 18px; }
 </style>
@@ -193,9 +204,9 @@ klondike_full_html = """
 <div id="win-modal">
     <h2>祝・見事クリア！</h2>
     <p>축하합니다! 게임을 완성하셨습니다.</p>
-    <hr style="border:0; border-top:1px solid rgba(184,155,94,0.3); margin: 12px 0;">
-    <p>최종 점수: <span id="final-score" style="color:#b89b5e; font-weight:bold;">0</span>점</p>
-    <p>소요 시간: <span id="final-time" style="color:#b89b5e; font-weight:bold;">00:00</span></p>
+    <hr style="border:0; border-top:1px solid rgba(212,175,55,0.3); margin: 12px 0;">
+    <p>최종 점수: <span id="final-score" style="color:#d4af37; font-weight:bold;">0</span>점</p>
+    <p>소요 시간: <span id="final-time" style="color:#d4af37; font-weight:bold;">00:00</span></p>
     <button class="btn modal-btn" onclick="initGame()">다시 도전하기</button>
 </div>
 
@@ -209,11 +220,18 @@ let dragGroup = [], isDragging = false, dragStartX = 0, dragStartY = 0;
 let cardW = 0, cardH = 0, gap = 0, startY = 0;
 let timeSeconds = 0, timerInterval = null, score = 0, isGameWon = false;
 
+// 클릭 선택 상태 관리
+let selectedInfo = null;
+
+function clearSelection() {
+    selectedInfo = null;
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+}
+
 function resizeBoard() {
     const board = document.getElementById('game-board');
     const w = board.clientWidth, h = board.clientHeight;
     
-    // 화면비율 맞춤 재계산
     gap = w * 0.02; 
     cardW = (w - (gap * 8)) / 7; 
     cardH = cardW * 1.45;
@@ -233,6 +251,7 @@ function initGame() {
     document.getElementById('anim-container').innerHTML = '';
     document.getElementById('auto-btn').style.display = 'none';
     isGameWon = false;
+    clearSelection();
 
     let deck = [], idCounter = 0;
     for (let s = 0; s < 4; s++) {
@@ -277,6 +296,7 @@ function saveState() {
 
 function undoMove() {
     if (history.length === 0 || isGameWon) return;
+    clearSelection();
     let state = JSON.parse(history.pop());
     stock = state.stock; waste = state.waste;
     foundations = state.foundations; tableau = state.tableau; score = state.score;
@@ -290,40 +310,60 @@ function render() {
 
     document.getElementById('score').innerText = score;
 
+    // 빈 배경 클릭 시 황금빛 선택 해제
+    board.onclick = (e) => {
+        if (e.target === board) clearSelection();
+    };
+
     let leftStock = gap;
     createSlot(leftStock, gap, '空', () => handleStockClick());
     if (stock.length > 0) {
         let c = createCardEl(stock[stock.length - 1], leftStock, gap, false);
-        c.onclick = handleStockClick;
+        c.onclick = (e) => { e.stopPropagation(); handleStockClick(); };
     }
 
     let leftWaste = gap * 2 + cardW;
-    createSlot(leftWaste, gap, '捨');
+    createSlot(leftWaste, gap, '捨', () => tryMoveSelectedTo('waste', 0));
     if (waste.length > 0) {
         let card = waste[waste.length - 1];
         let c = createCardEl(card, leftWaste, gap, true);
-        bindDragEvents(c, card, 'waste', 0, waste.length - 1);
+        bindCardEvents(c, card, 'waste', 0, waste.length - 1);
     }
 
     for (let i = 0; i < 4; i++) {
         let leftF = gap * (4 + i) + cardW * (3 + i);
-        createSlot(leftF, gap, '組');
+        createSlot(leftF, gap, '組', () => tryMoveSelectedTo('foundation', i));
         if (foundations[i].length > 0) {
             let card = foundations[i][foundations[i].length - 1];
             let c = createCardEl(card, leftF, gap, true);
-            bindDragEvents(c, card, 'foundation', i, foundations[i].length - 1);
+            bindCardEvents(c, card, 'foundation', i, foundations[i].length - 1);
         }
     }
 
     for (let i = 0; i < 7; i++) {
         let leftT = gap * (1 + i) + cardW * i;
-        createSlot(leftT, startY, '場');
+        createSlot(leftT, startY, '場', () => tryMoveSelectedTo('tableau', i));
         for (let j = 0; j < tableau[i].length; j++) {
             let card = tableau[i][j];
             let topT = startY + j * (cardH * 0.25);
             let c = createCardEl(card, leftT, topT, card.faceUp);
             if (card.faceUp) {
-                bindDragEvents(c, card, 'tableau', i, j);
+                bindCardEvents(c, card, 'tableau', i, j);
+            }
+        }
+    }
+
+    // 선택 상태 복원
+    if (selectedInfo) {
+        let selEl = document.getElementById(selectedInfo.card.uid);
+        if (selEl) {
+            if (selectedInfo.srcType === 'tableau') {
+                for (let k = selectedInfo.cardIdx; k < tableau[selectedInfo.colIdx].length; k++) {
+                    let targetEl = document.getElementById(tableau[selectedInfo.colIdx][k].uid);
+                    if (targetEl) targetEl.classList.add('selected');
+                }
+            } else {
+                selEl.classList.add('selected');
             }
         }
     }
@@ -339,7 +379,10 @@ function createSlot(x, y, label, onClick) {
     slot.style.width = cardW + 'px'; slot.style.height = cardH + 'px';
     slot.style.left = x + 'px'; slot.style.top = y + 'px';
     slot.innerText = label;
-    if (onClick) slot.onclick = onClick;
+    slot.onclick = (e) => {
+        e.stopPropagation();
+        if (onClick) onClick();
+    };
     board.appendChild(slot);
 }
 
@@ -366,6 +409,7 @@ function createCardEl(card, x, y, faceUp) {
 
 function handleStockClick() {
     if (isGameWon) return;
+    clearSelection();
     saveState();
     if (stock.length === 0) {
         stock = waste.reverse().map(c => ({...c, faceUp: false}));
@@ -376,20 +420,35 @@ function handleStockClick() {
     render();
 }
 
-function bindDragEvents(el, card, srcType, colIdx, cardIdx) {
+/* 마우스 드래그, 더블클릭, 단일클릭(황금 빛 테두리 선택) 통합 이벤트 매핑 */
+function bindCardEvents(el, card, srcType, colIdx, cardIdx) {
     let clickTime = 0;
+    let isMoveAction = false;
+
     el.onmousedown = (e) => {
         if (e.button !== 0 || isGameWon) return;
-        
+        e.stopPropagation();
+
         let now = new Date().getTime();
-        if (now - clickTime < 280) {
+        
+        // 1. 더블클릭 (자동 완성/이동)
+        if (now - clickTime < 260) {
+            clearSelection();
             autoMove(card, srcType, colIdx, cardIdx);
             clickTime = 0; return;
         }
         clickTime = now;
 
-        e.preventDefault();
-        isDragging = true; dragStartX = e.clientX; dragStartY = e.clientY;
+        // 이미 선택된 카드가 존재할 때 이동 시도
+        if (selectedInfo && (selectedInfo.card.uid !== card.uid)) {
+            let moved = tryMoveSelectedTo(srcType, colIdx);
+            if (moved) return;
+        }
+
+        // 2. 드래그 앤 드롭 준비
+        isDragging = false;
+        isMoveAction = false;
+        dragStartX = e.clientX; dragStartY = e.clientY;
         dragGroup = [];
 
         if (srcType === 'tableau') {
@@ -397,7 +456,6 @@ function bindDragEvents(el, card, srcType, colIdx, cardIdx) {
                 let targetCard = tableau[colIdx][k];
                 let cEl = document.getElementById(targetCard.uid);
                 if (cEl) {
-                    cEl.classList.add('dragging');
                     dragGroup.push({
                         el: cEl, card: targetCard,
                         origX: parseFloat(cEl.style.left), origY: parseFloat(cEl.style.top)
@@ -405,31 +463,92 @@ function bindDragEvents(el, card, srcType, colIdx, cardIdx) {
                 }
             }
         } else {
-            el.classList.add('dragging');
             dragGroup.push({ el: el, card: card, origX: parseFloat(el.style.left), origY: parseFloat(el.style.top) });
         }
 
         document.onmousemove = (e) => {
-            if (!isDragging) return;
             let dx = e.clientX - dragStartX, dy = e.clientY - dragStartY;
-            dragGroup.forEach(item => {
-                item.el.style.left = (item.origX + dx) + 'px';
-                item.el.style.top = (item.origY + dy) + 'px';
-            });
+            if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+                isDragging = true;
+                isMoveAction = true;
+                dragGroup.forEach(item => {
+                    item.el.classList.add('dragging');
+                    item.el.style.left = (item.origX + dx) + 'px';
+                    item.el.style.top = (item.origY + dy) + 'px';
+                });
+            }
         };
 
         document.onmouseup = (e) => {
-            if (!isDragging) return;
-            isDragging = false;
             document.onmousemove = null; document.onmouseup = null;
 
-            dragGroup.forEach(item => item.el.classList.remove('dragging'));
-            let dropped = checkDrop(card, srcType, colIdx, cardIdx, e.clientX, e.clientY);
-            if (!dropped) {
-                dragGroup.forEach(item => { item.el.style.left = item.origX + 'px'; item.el.style.top = item.origY + 'px'; });
-            } else { render(); }
+            if (isDragging) {
+                dragGroup.forEach(item => item.el.classList.remove('dragging'));
+                let dropped = checkDrop(card, srcType, colIdx, cardIdx, e.clientX, e.clientY);
+                if (!dropped) {
+                    dragGroup.forEach(item => { item.el.style.left = item.origX + 'px'; item.el.style.top = item.origY + 'px'; });
+                } else { 
+                    clearSelection();
+                    render(); 
+                }
+                isDragging = false;
+            } else if (!isMoveAction) {
+                // 3. 단순 클릭 (황금빛 선택 모드 토글)
+                if (selectedInfo && selectedInfo.card.uid === card.uid) {
+                    clearSelection();
+                } else {
+                    clearSelection();
+                    selectedInfo = { card, srcType, colIdx, cardIdx };
+                    render();
+                }
+            }
         };
     };
+}
+
+/* 단일 클릭 황금빛 선택 후 이동 시도 함수 */
+function tryMoveSelectedTo(targetType, targetColIdx) {
+    if (!selectedInfo) return false;
+
+    let { card, srcType, colIdx: srcCol, cardIdx: srcIdx } = selectedInfo;
+
+    // Foundation으로 이동
+    if (targetType === 'foundation') {
+        if (selectedInfo.srcType === 'tableau' && srcIdx !== tableau[srcCol].length - 1) {
+            return false; // 스택의 맨 아래 카드가 아니면 Foundation에 불가
+        }
+        let target = foundations[targetColIdx];
+        let topCard = target[target.length - 1];
+        if ((!topCard && card.value === 1) || (topCard && topCard.suit === card.suit && topCard.value === card.value - 1)) {
+            saveState();
+            target.push(removeSourceCard(srcType, srcCol, srcIdx)[0]);
+            score += 10;
+            clearSelection();
+            render();
+            return true;
+        }
+    }
+
+    // Tableau로 이동
+    if (targetType === 'tableau') {
+        if (srcType === 'tableau' && srcCol === targetColIdx) {
+            clearSelection();
+            return true;
+        }
+        let targetCol = tableau[targetColIdx];
+        let topCard = targetCol[targetCol.length - 1];
+        if ((!topCard && card.value === 13) || (topCard && topCard.color !== card.color && topCard.value === card.value + 1)) {
+            saveState();
+            tableau[targetColIdx] = tableau[targetColIdx].concat(removeSourceCard(srcType, srcCol, srcIdx));
+            score += 5;
+            clearSelection();
+            render();
+            return true;
+        }
+    }
+
+    clearSelection();
+    return false;
 }
 
 function autoMove(card, srcType, colIdx, cardIdx) {
@@ -529,6 +648,7 @@ function checkAutoCompleteCondition() {
 
 function runAutoComplete() {
     document.getElementById('auto-btn').style.display = 'none';
+    clearSelection();
     let autoInterval = setInterval(() => {
         let moved = false;
         if (waste.length > 0) {
@@ -570,6 +690,7 @@ function checkWinCondition() {
 
 function triggerVictory() {
     clearInterval(timerInterval);
+    clearSelection();
     const container = document.getElementById('anim-container');
     container.style.display = 'block';
     container.innerHTML = '';
