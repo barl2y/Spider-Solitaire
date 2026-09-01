@@ -8,7 +8,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Streamlit 여백 완전 밀착 및 스크롤 바 제거
 st.markdown("""
     <style>
     [data-testid="stHeader"], [data-testid="stToolbar"], footer { display: none !important; }
@@ -46,7 +45,6 @@ klondike_full_html = """
     html, body {
         width: 100%; height: 100%; overflow: hidden;
         background-color: #0c0d10;
-        /* 화려한 황금/전통 문양 입체 배경 */
         background-image: 
             radial-gradient(circle at 50% 30%, rgba(184, 155, 94, 0.18) 0%, rgba(12, 13, 16, 0.98) 80%),
             radial-gradient(circle at 10% 90%, rgba(184, 59, 50, 0.15) 0%, transparent 50%),
@@ -67,9 +65,11 @@ klondike_full_html = """
     .jp-title { font-weight: 800; letter-spacing: 0.25em; color: #f3ebdd; text-shadow: 0 0 8px rgba(212,175,55,0.3); }
     .jp-stats { font-family: 'Cinzel', serif; color: #d4af37; font-size: 15px; }
 
+    /* 배경 크기 확장: 세로 스크롤 가능하도록 overflow-y 처리 및 넉넉한 높이 확보 */
     #game-board { 
         flex: 1; position: relative; width: 100%; height: 100%;
-        overflow: hidden;
+        overflow-y: auto; overflow-x: hidden;
+        padding-bottom: 100px;
     }
 
     #bottom-bar {
@@ -87,7 +87,6 @@ klondike_full_html = """
     }
     .btn:hover { background: #b83b32; color: #fff; border-color: #f3ebdd; box-shadow: 0 0 10px rgba(184,59,50,0.6); }
 
-    /* 자동 완성 버튼 UI */
     #auto-btn {
         position: absolute; left: 50%; transform: translateX(-50%);
         top: 12px; display: none; z-index: 500;
@@ -99,7 +98,6 @@ klondike_full_html = """
     }
     #auto-btn:hover { transform: translateX(-50%) scale(1.05); background: #fff8dc; }
 
-    /* 카드 스타일 및 황금빛 클릭 효과 */
     .card {
         position: absolute; border-radius: 6px; background-color: #f3ebdd;
         background-image: radial-gradient(#e5d9c5 1px, transparent 0); background-size: 8px 8px;
@@ -145,7 +143,6 @@ klondike_full_html = """
         color: rgba(212, 175, 55, 0.4); font-size: 0.9rem;
     }
 
-    /* 승리 일본풍 애니메이션 */
     #anim-container {
         position: absolute; top: 0; left: 0; width: 100%; height: 100%;
         pointer-events: none; overflow: hidden; z-index: 2000; display: none;
@@ -169,7 +166,6 @@ klondike_full_html = """
         100% { transform: translateY(-20vh) scale(1.2); }
     }
 
-    /* 승리 모달 창 */
     #win-modal {
         position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
         background: rgba(12, 12, 15, 0.96); border: 2px solid #d4af37;
@@ -219,8 +215,6 @@ let history = [];
 let dragGroup = [], isDragging = false, dragStartX = 0, dragStartY = 0;
 let cardW = 0, cardH = 0, gap = 0, startY = 0;
 let timeSeconds = 0, timerInterval = null, score = 0, isGameWon = false;
-
-// 클릭 선택 상태 관리
 let selectedInfo = null;
 
 function clearSelection() {
@@ -228,19 +222,22 @@ function clearSelection() {
     document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
 }
 
+/* 카드 크기는 보존하면서, 많은 카드가 세로로 깔려도 가려지지 않도록 계산식 수정 */
 function resizeBoard() {
     const board = document.getElementById('game-board');
-    const w = board.clientWidth, h = board.clientHeight;
+    const w = board.clientWidth;
     
     gap = w * 0.02; 
     cardW = (w - (gap * 8)) / 7; 
     cardH = cardW * 1.45;
     
-    if (cardH * 4.0 > h) {
-        cardH = h / 4.0;
-        cardW = cardH / 1.45;
+    // 최소 카드 사이즈 보장
+    if (cardW < 70) {
+        cardW = 70;
+        cardH = 101.5;
         gap = (w - (cardW * 7)) / 8;
     }
+    
     startY = cardH + gap * 1.2; 
     render();
 }
@@ -310,7 +307,6 @@ function render() {
 
     document.getElementById('score').innerText = score;
 
-    // 빈 배경 클릭 시 황금빛 선택 해제
     board.onclick = (e) => {
         if (e.target === board) clearSelection();
     };
@@ -340,20 +336,29 @@ function render() {
         }
     }
 
+    // 세로 겹침 간격을 조절하여 K부터 5, A까지 펼쳐져도 가려지지 않도록 수정
+    let maxTableauHeight = startY + cardH;
     for (let i = 0; i < 7; i++) {
         let leftT = gap * (1 + i) + cardW * i;
         createSlot(leftT, startY, '場', () => tryMoveSelectedTo('tableau', i));
+        
+        let cardSpacing = Math.min(cardH * 0.25, 28); // 겹침 간격 최적화
+        
         for (let j = 0; j < tableau[i].length; j++) {
             let card = tableau[i][j];
-            let topT = startY + j * (cardH * 0.25);
+            let topT = startY + j * cardSpacing;
+            if (topT + cardH > maxTableauHeight) maxTableauHeight = topT + cardH;
+
             let c = createCardEl(card, leftT, topT, card.faceUp);
             if (card.faceUp) {
                 bindCardEvents(c, card, 'tableau', i, j);
             }
         }
     }
+    
+    // 카드가 많아지면 보드 컨테이너 높이를 자동으로 넓혀 스크롤 보장
+    board.style.minHeight = (maxTableauHeight + 80) + 'px';
 
-    // 선택 상태 복원
     if (selectedInfo) {
         let selEl = document.getElementById(selectedInfo.card.uid);
         if (selEl) {
@@ -420,7 +425,6 @@ function handleStockClick() {
     render();
 }
 
-/* 마우스 드래그, 더블클릭, 단일클릭(황금 빛 테두리 선택) 통합 이벤트 매핑 */
 function bindCardEvents(el, card, srcType, colIdx, cardIdx) {
     let clickTime = 0;
     let isMoveAction = false;
@@ -431,7 +435,6 @@ function bindCardEvents(el, card, srcType, colIdx, cardIdx) {
 
         let now = new Date().getTime();
         
-        // 1. 더블클릭 (자동 완성/이동)
         if (now - clickTime < 260) {
             clearSelection();
             autoMove(card, srcType, colIdx, cardIdx);
@@ -439,13 +442,11 @@ function bindCardEvents(el, card, srcType, colIdx, cardIdx) {
         }
         clickTime = now;
 
-        // 이미 선택된 카드가 존재할 때 이동 시도
         if (selectedInfo && (selectedInfo.card.uid !== card.uid)) {
             let moved = tryMoveSelectedTo(srcType, colIdx);
             if (moved) return;
         }
 
-        // 2. 드래그 앤 드롭 준비
         isDragging = false;
         isMoveAction = false;
         dragStartX = e.clientX; dragStartY = e.clientY;
@@ -493,7 +494,6 @@ function bindCardEvents(el, card, srcType, colIdx, cardIdx) {
                 }
                 isDragging = false;
             } else if (!isMoveAction) {
-                // 3. 단순 클릭 (황금빛 선택 모드 토글)
                 if (selectedInfo && selectedInfo.card.uid === card.uid) {
                     clearSelection();
                 } else {
@@ -506,16 +506,14 @@ function bindCardEvents(el, card, srcType, colIdx, cardIdx) {
     };
 }
 
-/* 단일 클릭 황금빛 선택 후 이동 시도 함수 */
 function tryMoveSelectedTo(targetType, targetColIdx) {
     if (!selectedInfo) return false;
 
     let { card, srcType, colIdx: srcCol, cardIdx: srcIdx } = selectedInfo;
 
-    // Foundation으로 이동
     if (targetType === 'foundation') {
         if (selectedInfo.srcType === 'tableau' && srcIdx !== tableau[srcCol].length - 1) {
-            return false; // 스택의 맨 아래 카드가 아니면 Foundation에 불가
+            return false;
         }
         let target = foundations[targetColIdx];
         let topCard = target[target.length - 1];
@@ -529,7 +527,6 @@ function tryMoveSelectedTo(targetType, targetColIdx) {
         }
     }
 
-    // Tableau로 이동
     if (targetType === 'tableau') {
         if (srcType === 'tableau' && srcCol === targetColIdx) {
             clearSelection();
@@ -625,7 +622,7 @@ function showHint() {
         let tCard = tableau[t][tableau[t].length - 1];
         for (let f = 0; f < 4; f++) {
             let topCard = foundations[f][foundations[f].length - 1];
-            if ((!topCard && tCard.value === 1) || (topCard && topCard.suit === tCard.suit && topCard.value === tCard.value - 1)) {
+            if ((!topCard && tCard.value === 1) || (topCard && tCard.suit === topCard.suit && topCard.value === tCard.value - 1)) {
                 document.getElementById(tCard.uid)?.classList.add('highlight'); return;
             }
         }
@@ -731,4 +728,4 @@ window.onload = () => {
 </html>
 """
 
-components.html(klondike_full_html, height=800, scrolling=False)
+components.html(klondike_full_html, height=850, scrolling=True)
