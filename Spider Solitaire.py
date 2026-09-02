@@ -142,14 +142,23 @@ klondike_full_html = """
         z-index: 9999 !important;
     }
 
-    /* 초록색 힌트 애니메이션 */
+    /* 초록색 힌트 발광 스타일 */
     .card.highlight { 
-        animation: greenHintPulse 1s infinite alternate; 
+        animation: greenHintPulse 0.8s infinite alternate; 
         border: 2px solid #2ecc71 !important; 
     }
     @keyframes greenHintPulse {
         0% { transform: scale(1); box-shadow: 0 0 6px #2ecc71, inset 0 0 4px #2ecc71; }
-        100% { transform: scale(1.06); box-shadow: 0 0 20px #00ff88, 0 0 10px #2ecc71; }
+        100% { transform: scale(1.06); box-shadow: 0 0 22px #00ff88, 0 0 12px #2ecc71; }
+    }
+
+    /* 힌트 애니메이션용 잔상 카드 */
+    .hint-ghost-card {
+        position: absolute; pointer-events: none; border-radius: 6px;
+        border: 2px solid #00ff88 !important;
+        box-shadow: 0 0 25px #00ff88, inset 0 0 10px #00ff88 !important;
+        z-index: 9000 !important; opacity: 0.85;
+        transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1);
     }
 
     .card.back {
@@ -167,6 +176,12 @@ klondike_full_html = """
         border: 1px dashed rgba(212, 175, 55, 0.4); background: rgba(20, 20, 25, 0.5);
         display: flex; align-items: center; justify-content: center;
         color: rgba(212, 175, 55, 0.4); font-size: 0.85rem;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .card-slot.hint-target {
+        border-color: #00ff88 !important;
+        box-shadow: 0 0 20px rgba(0, 255, 136, 0.6), inset 0 0 10px rgba(0, 255, 136, 0.3) !important;
     }
 
     #fx-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2000; }
@@ -294,13 +309,14 @@ const VALUES = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'
 let stock = [], waste = [], foundations = [[], [], [], []], tableau = [[], [], [], [], [], [], []];
 let history = [];
 let dragGroup = [], isDragging = false, dragStartX = 0, dragStartY = 0;
-let cardW = 0, cardH = 0, gap = 0, startY = 0, offsetX = 0;
+let cardW = 0, cardH = 0, gap = 0, startY = 0, offsetX = 0, cardSpacing = 0;
 let timeSeconds = 0, timerInterval = null, score = 0, isGameWon = false, isGameOver = false;
 let selectedInfo = null;
 
 function clearSelection() {
     selectedInfo = null;
-    document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('selected', 'highlight'));
+    document.querySelectorAll('.card-slot').forEach(s => s.classList.remove('hint-target'));
 }
 
 function updateSelectedUI() {
@@ -331,6 +347,7 @@ function resizeBoard() {
     let totalWidth = (cardW * 7) + (gap * 6);
     offsetX = Math.max((w - totalWidth) / 2, 15);
     startY = cardH + gap * 1.2; 
+    cardSpacing = Math.min(cardH * 0.22, 22);
     render();
 }
 
@@ -400,14 +417,14 @@ function render() {
     document.getElementById('score').innerText = score;
 
     let leftStock = offsetX;
-    createSlot(leftStock, gap, '空', () => handleStockClick());
+    createSlot(leftStock, gap, '空', () => handleStockClick(), 'slot_stock');
     if (stock.length > 0) {
         let c = createCardEl(stock[stock.length - 1], leftStock, gap, false);
         c.onclick = (e) => { e.stopPropagation(); handleStockClick(); };
     }
 
     let leftWaste = offsetX + cardW + gap;
-    createSlot(leftWaste, gap, '捨', () => tryMoveSelectedTo('waste', 0));
+    createSlot(leftWaste, gap, '捨', () => tryMoveSelectedTo('waste', 0), 'slot_waste');
     if (waste.length > 0) {
         let card = waste[waste.length - 1];
         let c = createCardEl(card, leftWaste, gap, true);
@@ -416,7 +433,7 @@ function render() {
 
     for (let i = 0; i < 4; i++) {
         let leftF = offsetX + (cardW + gap) * (3 + i);
-        createSlot(leftF, gap, '組', () => tryMoveSelectedTo('foundation', i));
+        createSlot(leftF, gap, '組', () => tryMoveSelectedTo('foundation', i), `slot_f_${i}`);
         if (foundations[i].length > 0) {
             let card = foundations[i][foundations[i].length - 1];
             let c = createCardEl(card, leftF, gap, true);
@@ -424,10 +441,9 @@ function render() {
         }
     }
 
-    const cardSpacing = Math.min(cardH * 0.22, 22); 
     for (let i = 0; i < 7; i++) {
         let leftT = offsetX + (cardW + gap) * i;
-        createSlot(leftT, startY, '場', () => tryMoveSelectedTo('tableau', i));
+        createSlot(leftT, startY, '場', () => tryMoveSelectedTo('tableau', i), `slot_t_${i}`);
         
         for (let j = 0; j < tableau[i].length; j++) {
             let card = tableau[i][j];
@@ -443,9 +459,10 @@ function render() {
     checkNoMovesCondition();
 }
 
-function createSlot(x, y, label, onClick) {
+function createSlot(x, y, label, onClick, id) {
     const board = document.getElementById('game-board');
     const slot = document.createElement('div');
+    if (id) slot.id = id;
     slot.className = 'card-slot';
     slot.style.width = cardW + 'px'; slot.style.height = cardH + 'px';
     slot.style.left = x + 'px'; slot.style.top = y + 'px';
@@ -638,26 +655,27 @@ function removeSourceCard(type, col, idx) {
     return Array.isArray(cards) ? cards : [cards];
 }
 
-/* 유효한 이동 수(Valid Move) 검사 함수 */
+/* 목표 위치(Target Pos) 정보를 함께 계산하는 유효 이동 검사 */
 function getAvailableMove() {
-    // 1. 버림패(Waste)에서 이동 가능한지 확인
+    // 1. 버림패(Waste)에서 이동
     if (waste.length > 0) {
         let wCard = waste[waste.length - 1];
         for (let f = 0; f < 4; f++) {
             let topCard = foundations[f][foundations[f].length - 1];
             if ((!topCard && wCard.value === 1) || (topCard && topCard.suit === wCard.suit && topCard.value === wCard.value - 1)) {
-                return { card: wCard };
+                return { card: wCard, targetX: offsetX + (cardW + gap) * (3 + f), targetY: gap, targetSlotId: `slot_f_${f}` };
             }
         }
         for (let t = 0; t < 7; t++) {
             let topCard = tableau[t][tableau[t].length - 1];
             if ((!topCard && wCard.value === 13) || (topCard && topCard.color !== wCard.color && topCard.value === wCard.value + 1)) {
-                return { card: wCard };
+                let targetY = startY + tableau[t].length * cardSpacing;
+                return { card: wCard, targetX: offsetX + (cardW + gap) * t, targetY: targetY, targetSlotId: `slot_t_${t}` };
             }
         }
     }
 
-    // 2. 바닥 카드(Tableau) 간 이동 가능한지 확인
+    // 2. 바닥 카드(Tableau) 간 이동
     for (let t = 0; t < 7; t++) {
         if (tableau[t].length === 0) continue;
         for (let j = 0; j < tableau[t].length; j++) {
@@ -668,7 +686,7 @@ function getAvailableMove() {
                 for (let f = 0; f < 4; f++) {
                     let topCard = foundations[f][foundations[f].length - 1];
                     if ((!topCard && card.value === 1) || (topCard && card.suit === topCard.suit && topCard.value === topCard.value - 1)) {
-                        return { card: card };
+                        return { card: card, targetX: offsetX + (cardW + gap) * (3 + f), targetY: gap, targetSlotId: `slot_f_${f}` };
                     }
                 }
             }
@@ -677,26 +695,27 @@ function getAvailableMove() {
                 if (t === t2) continue;
                 let topCard = tableau[t2][tableau[t2].length - 1];
                 if ((!topCard && card.value === 13 && j > 0) || (topCard && topCard.color !== card.color && topCard.value === card.value + 1)) {
-                    return { card: card };
+                    let targetY = startY + tableau[t2].length * cardSpacing;
+                    return { card: card, targetX: offsetX + (cardW + gap) * t2, targetY: targetY, targetSlotId: `slot_t_${t2}` };
                 }
             }
         }
     }
 
-    // 3. 스톡(Stock) 카드 전체를 뒤집었을 때 이동 가능한 수가 있는지 검사
+    // 3. 스톡(Stock) 카드 뒤집어서 가능한 이동
     let allStockCards = [...stock, ...waste.slice().reverse()];
     for (let i = 0; i < allStockCards.length; i++) {
         let sCard = allStockCards[i];
         for (let f = 0; f < 4; f++) {
             let topCard = foundations[f][foundations[f].length - 1];
             if ((!topCard && sCard.value === 1) || (topCard && topCard.suit === sCard.suit && topCard.value === sCard.value - 1)) {
-                return { card: stock.length > 0 ? stock[stock.length - 1] : waste[waste.length - 1], isStock: true };
+                return { card: stock.length > 0 ? stock[stock.length - 1] : waste[waste.length - 1], targetX: offsetX + cardW + gap, targetY: gap, targetSlotId: 'slot_waste' };
             }
         }
         for (let t = 0; t < 7; t++) {
             let topCard = tableau[t][tableau[t].length - 1];
             if ((!topCard && sCard.value === 13) || (topCard && topCard.color !== sCard.color && topCard.value === sCard.value + 1)) {
-                return { card: stock.length > 0 ? stock[stock.length - 1] : waste[waste.length - 1], isStock: true };
+                return { card: stock.length > 0 ? stock[stock.length - 1] : waste[waste.length - 1], targetX: offsetX + cardW + gap, targetY: gap, targetSlotId: 'slot_waste' };
             }
         }
     }
@@ -704,21 +723,53 @@ function getAvailableMove() {
     return null;
 }
 
-/* 힌트 버튼 수정 로직 */
+/* 어디로 이동해야 할지 보여주는 애니메이션 힌트 기능 */
 function showHint() {
-    document.querySelectorAll('.card').forEach(c => c.classList.remove('highlight'));
+    clearSelection();
     if (isGameWon || isGameOver) return;
 
     let move = getAvailableMove();
     if (move && move.card) {
         let el = document.getElementById(move.card.uid);
         if (el) el.classList.add('highlight');
+
+        // 목표 슬롯 발광
+        if (move.targetSlotId) {
+            let slotEl = document.getElementById(move.targetSlotId);
+            if (slotEl) slotEl.classList.add('hint-target');
+        }
+
+        // 이동 궤적 애니메이션 (Ghost Card 생성)
+        if (el && move.targetX !== undefined && move.targetY !== undefined) {
+            const board = document.getElementById('game-board');
+            let ghost = el.cloneNode(true);
+            ghost.id = 'hint_ghost';
+            ghost.classList.remove('highlight', 'selected');
+            ghost.classList.add('hint-ghost-card');
+            
+            let startX = parseFloat(el.style.left);
+            let startY = parseFloat(el.style.top);
+            ghost.style.left = startX + 'px';
+            ghost.style.top = startY + 'px';
+
+            board.appendChild(ghost);
+
+            // 출발점 -> 목적지 이동 애니메이션
+            setTimeout(() => {
+                ghost.style.left = move.targetX + 'px';
+                ghost.style.top = move.targetY + 'px';
+            }, 50);
+
+            // 애니메이션 종료 후 제거
+            setTimeout(() => {
+                if (ghost) ghost.remove();
+            }, 900);
+        }
     } else {
         triggerFailScreen();
     }
 }
 
-/* 완전히 막혔는지 검사하고 실패 화면을 즉시 출력 */
 function checkNoMovesCondition() {
     if (isGameWon || isGameOver) return;
 
