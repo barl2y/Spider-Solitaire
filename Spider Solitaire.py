@@ -55,18 +55,38 @@ klondike_full_html = """
         position: relative;
     }
 
-    /* 양쪽 사이드 벚꽃 나뭇가지 배경 */
+    /* 벚꽃 가지 오나먼트 및 분홍색 광원 애니메이션 */
     .cherry-branch {
-        position: absolute; top: 50px; pointer-events: none; z-index: 5; opacity: 0.85;
+        position: absolute; top: 35px; pointer-events: none; z-index: 6;
     }
-    .cherry-left {
-        left: -10px; width: 280px; height: 280px;
-        filter: drop-shadow(0 0 10px rgba(255, 183, 197, 0.3));
+    .cherry-left { left: -10px; width: 300px; height: 300px; }
+    .cherry-right { right: -10px; width: 300px; height: 300px; transform: scaleX(-1); }
+
+    .cherry-glow {
+        animation: sakuraGlowPulse 3.5s ease-in-out infinite alternate;
     }
-    .cherry-right {
-        right: -10px; width: 280px; height: 280px; transform: scaleX(-1);
-        filter: drop-shadow(0 0 10px rgba(255, 183, 197, 0.3));
+    @keyframes sakuraGlowPulse {
+        0% { filter: drop-shadow(0 0 6px rgba(255, 183, 197, 0.3)); }
+        50% { filter: drop-shadow(0 0 18px rgba(255, 183, 197, 0.8)); }
+        100% { filter: drop-shadow(0 0 28px rgba(255, 105, 180, 0.9)); }
     }
+
+    /* 등불(Lantern) 주황색 따뜻한 광원 애니메이션 */
+    .lantern-glow {
+        animation: lanternGlowPulse 2.2s ease-in-out infinite alternate;
+        transform-origin: center;
+    }
+    @keyframes lanternGlowPulse {
+        0% { filter: drop-shadow(0 0 5px rgba(255, 160, 50, 0.5)) drop-shadow(0 0 12px rgba(255, 100, 0, 0.3)); opacity: 0.8; }
+        100% { filter: drop-shadow(0 0 22px rgba(255, 190, 60, 1)) drop-shadow(0 0 35px rgba(255, 120, 0, 0.8)); opacity: 1; }
+    }
+
+    /* 하단 전통 실루엣 건물 */
+    .bg-building {
+        position: absolute; bottom: 50px; pointer-events: none; z-index: 2; opacity: 0.25;
+    }
+    .building-left { left: 0; width: 220px; }
+    .building-right { right: 0; width: 220px; transform: scaleX(-1); }
 
     #top-bar {
         height: 50px; background: rgba(15, 15, 18, 0.92);
@@ -114,7 +134,6 @@ klondike_full_html = """
         z-index: 10;
     }
 
-    /* 강화된 클릭 선택(선택됨) 광원 효과 */
     .card.selected {
         border: 2px solid #ffd700 !important;
         box-shadow: 0 0 22px rgba(255, 215, 0, 1), 0 0 8px rgba(255, 255, 255, 0.9) !important;
@@ -151,7 +170,7 @@ klondike_full_html = """
 
     #fx-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2000; }
 
-    /* 클리어 모달 */
+    /* 모달 */
     #win-modal {
         position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
         background: rgba(12, 12, 15, 0.96); border: 2px solid #d4af37;
@@ -160,7 +179,6 @@ klondike_full_html = """
         z-index: 3000; display: none; border-radius: 4px;
     }
 
-    /* 게임오버(실패) 모달 - 크림슨 스파크 스타일 */
     #fail-modal {
         position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
         background: radial-gradient(circle, rgba(35, 10, 15, 0.98) 0%, rgba(10, 5, 8, 0.98) 100%);
@@ -179,19 +197,49 @@ klondike_full_html = """
 </head>
 <body>
 
+<!-- 좌/우 상단 벚꽃 가지 + 전통 등불 (빛의 색깔 및 주기적 변동 적용) -->
 <svg class="cherry-branch cherry-left" viewBox="0 0 200 200">
     <path d="M 0 0 Q 60 40 120 20 T 180 60" stroke="#3a2312" stroke-width="5" fill="none" />
     <path d="M 60 40 Q 90 70 110 100" stroke="#3a2312" stroke-width="3" fill="none" />
-    <circle cx="120" cy="20" r="12" fill="#ffc0cb" opacity="0.8" />
-    <circle cx="180" cy="60" r="14" fill="#ffc0cb" opacity="0.8" />
-    <circle cx="110" cy="100" r="10" fill="#ffb7c5" opacity="0.8" />
+    <!-- 벚꽃 꽃잎 (핑크빛 광원) -->
+    <g class="cherry-glow">
+        <circle cx="120" cy="20" r="12" fill="#ffc0cb" opacity="0.95" />
+        <circle cx="180" cy="60" r="14" fill="#ffb7c5" opacity="0.95" />
+        <circle cx="110" cy="100" r="10" fill="#ffb7c5" opacity="0.95" />
+    </g>
+    <!-- 등불 연결선 및 등불 (주황색/황금빛 광원) -->
+    <line x1="180" y1="60" x2="180" y2="95" stroke="#222" stroke-width="2" />
+    <g class="lantern-glow">
+        <rect x="168" y="95" width="24" height="32" rx="3" fill="#e65100" stroke="#d4af37" stroke-width="2"/>
+        <rect x="172" y="99" width="16" height="24" rx="1" fill="#ffb74d"/>
+        <line x1="180" y1="99" x2="180" y2="123" stroke="#e65100" stroke-width="1.5"/>
+    </g>
 </svg>
+
 <svg class="cherry-branch cherry-right" viewBox="0 0 200 200">
     <path d="M 0 0 Q 60 40 120 20 T 180 60" stroke="#3a2312" stroke-width="5" fill="none" />
     <path d="M 60 40 Q 90 70 110 100" stroke="#3a2312" stroke-width="3" fill="none" />
-    <circle cx="120" cy="20" r="12" fill="#ffc0cb" opacity="0.8" />
-    <circle cx="180" cy="60" r="14" fill="#ffc0cb" opacity="0.8" />
-    <circle cx="110" cy="100" r="10" fill="#ffb7c5" opacity="0.8" />
+    <g class="cherry-glow">
+        <circle cx="120" cy="20" r="12" fill="#ffc0cb" opacity="0.95" />
+        <circle cx="180" cy="60" r="14" fill="#ffb7c5" opacity="0.95" />
+        <circle cx="110" cy="100" r="10" fill="#ffb7c5" opacity="0.95" />
+    </g>
+    <line x1="180" y1="60" x2="180" y2="95" stroke="#222" stroke-width="2" />
+    <g class="lantern-glow">
+        <rect x="168" y="95" width="24" height="32" rx="3" fill="#e65100" stroke="#d4af37" stroke-width="2"/>
+        <rect x="172" y="99" width="16" height="24" rx="1" fill="#ffb74d"/>
+        <line x1="180" y1="99" x2="180" y2="123" stroke="#e65100" stroke-width="1.5"/>
+    </g>
+</svg>
+
+<!-- 하단 일본 풍격 전통 기와 건물 Silhouettes -->
+<svg class="bg-building building-left" viewBox="0 0 200 150">
+    <path d="M 10 150 L 10 90 L 0 90 L 30 60 L 170 60 L 200 90 L 190 90 L 190 150 Z" fill="#d4af37"/>
+    <path d="M 20 60 L 100 20 L 180 60 Z" fill="#b83b32"/>
+</svg>
+<svg class="bg-building building-right" viewBox="0 0 200 150">
+    <path d="M 10 150 L 10 90 L 0 90 L 30 60 L 170 60 L 200 90 L 190 90 L 190 150 Z" fill="#d4af37"/>
+    <path d="M 20 60 L 100 20 L 180 60 Z" fill="#b83b32"/>
 </svg>
 
 <div id="top-bar">
@@ -569,11 +617,11 @@ function removeSourceCard(type, col, idx) {
     return Array.isArray(cards) ? cards : [cards];
 }
 
-/* 더 이상 이동할 수 있는 수가 없는지 자동 체킹 */
+/* 스톡/버려진 카드를 전수 조사하여 완전히 유효한 수가 없는지 판단하는 최신화 기준 */
 function checkNoMovesCondition() {
     if (isGameWon || isGameOver) return;
-    if (stock.length > 0) return; 
 
+    // 1. 현재 버려진 카드(Waste)에서 옮길 수 있는지 체킹
     if (waste.length > 0) {
         let wCard = waste[waste.length - 1];
         for (let f = 0; f < 4; f++) {
@@ -586,6 +634,7 @@ function checkNoMovesCondition() {
         }
     }
 
+    // 2. 필드(Tableau)의 오픈 카드들에서 옮길 수 있는지 체킹
     for (let t = 0; t < 7; t++) {
         if (tableau[t].length === 0) continue;
         for (let j = 0; j < tableau[t].length; j++) {
@@ -605,6 +654,23 @@ function checkNoMovesCondition() {
         }
     }
 
+    // 3. 스톡(Stock)에 남아있는 모든 카드들을 검수
+    // 스톡에 남아있는 카드 중 단 하나라도 필드나 완성덱으로 이동될 가능성이 있다면 종료하지 않음
+    if (stock.length > 0) {
+        for (let i = 0; i < stock.length; i++) {
+            let sCard = stock[i];
+            for (let f = 0; f < 4; f++) {
+                let topCard = foundations[f][foundations[f].length - 1];
+                if ((!topCard && sCard.value === 1) || (topCard && topCard.suit === sCard.suit && topCard.value === sCard.value - 1)) return;
+            }
+            for (let t = 0; t < 7; t++) {
+                let topCard = tableau[t][tableau[t].length - 1];
+                if ((!topCard && sCard.value === 13) || (topCard && topCard.color !== sCard.color && topCard.value === sCard.value + 1)) return;
+            }
+        }
+    }
+
+    // 위 3가지 가능성을 모두 통과 못 했다면 Game Over 판정
     triggerFailScreen();
 }
 
@@ -714,7 +780,7 @@ function runAutoComplete() {
                 let card = tableau[t][tableau[t].length - 1];
                 for (let f = 0; f < 4; f++) {
                     let topCard = foundations[f][foundations[f].length - 1];
-                    if ((!topCard && card.value === 1) || (topCard && card.suit === topCard.suit && topCard.value === card.value - 1)) {
+                    if ((!topCard && card.value === 1) || (topCard && card.suit === card.suit && topCard.value === card.value - 1)) {
                         foundations[f].push(tableau[t].pop()); score += 10; moved = true; break;
                     }
                 }
