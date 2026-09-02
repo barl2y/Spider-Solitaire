@@ -46,10 +46,11 @@ klondike_full_html = """
         width: 100%; height: 100%; overflow: hidden;
         background-color: #0c0d10;
         background-image: 
-            radial-gradient(circle at 50% 35%, rgba(184, 155, 94, 0.22) 0%, rgba(12, 13, 16, 0.98) 75%),
-            radial-gradient(circle at 10% 90%, rgba(184, 59, 50, 0.18) 0%, transparent 50%),
-            radial-gradient(circle at 90% 10%, rgba(36, 52, 71, 0.3) 0%, transparent 50%),
-            url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23d4af37' fill-opacity='0.06' fill-rule='evenodd'%3E%3Cpath d='M0 0h40v40H0V0zm40 40h40v40H40V40zm0-40h40v40H40V0zM0 40h40v40H0V40z'/%3E%3Ccircle cx='40' cy='40' r='18' stroke='%23d4af37' stroke-opacity='0.08' stroke-width='2' fill='none'/%3E%3C/g%3E%3C/svg%3E");
+            radial-gradient(circle at 50% 35%, rgba(184, 155, 94, 0.2) 0%, rgba(12, 13, 16, 0.98) 80%),
+            radial-gradient(circle at 15% 85%, rgba(255, 140, 0, 0.12) 0%, transparent 45%),
+            radial-gradient(circle at 85% 85%, rgba(255, 140, 0, 0.12) 0%, transparent 45%),
+            radial-gradient(circle at 50% 10%, rgba(255, 183, 197, 0.15) 0%, transparent 50%),
+            url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23d4af37' fill-opacity='0.05' fill-rule='evenodd'%3E%3Cpath d='M0 0h40v40H0V0zm40 40h40v40H40V40zm0-40h40v40H40V0zM0 40h40v40H0V40z'/%3E%3Ccircle cx='40' cy='40' r='18' stroke='%23d4af37' stroke-opacity='0.06' stroke-width='2' fill='none'/%3E%3C/g%3E%3C/svg%3E");
         font-family: 'Shippori Mincho', serif;
         display: flex; flex-direction: column;
         position: relative;
@@ -59,34 +60,49 @@ klondike_full_html = """
     .cherry-branch {
         position: absolute; top: 35px; pointer-events: none; z-index: 6;
     }
-    .cherry-left { left: -10px; width: 300px; height: 300px; }
-    .cherry-right { right: -10px; width: 300px; height: 300px; transform: scaleX(-1); }
+    .cherry-left { left: -10px; width: 320px; height: 320px; }
+    .cherry-right { right: -10px; width: 320px; height: 320px; transform: scaleX(-1); }
 
-    .cherry-glow {
-        animation: sakuraGlowPulse 3.5s ease-in-out infinite alternate;
+    .sakura-light {
+        animation: sakuraPulse 3.5s ease-in-out infinite alternate;
     }
-    @keyframes sakuraGlowPulse {
-        0% { filter: drop-shadow(0 0 6px rgba(255, 183, 197, 0.3)); }
-        50% { filter: drop-shadow(0 0 18px rgba(255, 183, 197, 0.8)); }
-        100% { filter: drop-shadow(0 0 28px rgba(255, 105, 180, 0.9)); }
+    @keyframes sakuraPulse {
+        0% { filter: drop-shadow(0 0 5px rgba(255, 183, 197, 0.4)); opacity: 0.85; }
+        50% { filter: drop-shadow(0 0 16px rgba(255, 183, 197, 0.8)); opacity: 1; }
+        100% { filter: drop-shadow(0 0 25px rgba(255, 105, 180, 0.9)); opacity: 0.9; }
     }
 
-    /* 등불(Lantern) 주황색 따뜻한 광원 애니메이션 */
-    .lantern-glow {
-        animation: lanternGlowPulse 2.2s ease-in-out infinite alternate;
+    /* 땅에 있는 석등(Stone Lantern) 및 지상 주황색 불빛 애니메이션 */
+    .ground-lantern {
+        position: absolute; bottom: 50px; pointer-events: none; z-index: 5;
+    }
+    .lantern-left { left: 25px; width: 140px; height: 220px; }
+    .lantern-right { right: 25px; width: 140px; height: 220px; transform: scaleX(-1); }
+
+    .stone-glow {
+        animation: stoneLanternPulse 2.1s ease-in-out infinite alternate;
         transform-origin: center;
     }
-    @keyframes lanternGlowPulse {
-        0% { filter: drop-shadow(0 0 5px rgba(255, 160, 50, 0.5)) drop-shadow(0 0 12px rgba(255, 100, 0, 0.3)); opacity: 0.8; }
-        100% { filter: drop-shadow(0 0 22px rgba(255, 190, 60, 1)) drop-shadow(0 0 35px rgba(255, 120, 0, 0.8)); opacity: 1; }
+    @keyframes stoneLanternPulse {
+        0% { 
+            filter: drop-shadow(0 0 6px rgba(255, 150, 40, 0.5)) drop-shadow(0 0 15px rgba(255, 100, 0, 0.3)); 
+            opacity: 0.75; 
+        }
+        50% { 
+            filter: drop-shadow(0 0 18px rgba(255, 170, 50, 0.85)) drop-shadow(0 0 30px rgba(255, 120, 0, 0.6)); 
+            opacity: 1; 
+        }
+        100% { 
+            filter: drop-shadow(0 0 28px rgba(255, 190, 60, 1)) drop-shadow(0 0 45px rgba(255, 90, 0, 0.8)); 
+            opacity: 0.9; 
+        }
     }
 
-    /* 하단 전통 실루엣 건물 */
-    .bg-building {
-        position: absolute; bottom: 50px; pointer-events: none; z-index: 2; opacity: 0.25;
+    /* 토리이 실루엣 */
+    .bg-torii {
+        position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
+        width: 360px; opacity: 0.12; pointer-events: none; z-index: 1;
     }
-    .building-left { left: 0; width: 220px; }
-    .building-right { right: 0; width: 220px; transform: scaleX(-1); }
 
     #top-bar {
         height: 50px; background: rgba(15, 15, 18, 0.92);
@@ -134,10 +150,11 @@ klondike_full_html = """
         z-index: 10;
     }
 
+    /* 선택된 카드들(포개진 묶음 포함)의 황금빛 네온 효과 */
     .card.selected {
         border: 2px solid #ffd700 !important;
-        box-shadow: 0 0 22px rgba(255, 215, 0, 1), 0 0 8px rgba(255, 255, 255, 0.9) !important;
-        transform: translateY(-8px) scale(1.03) !important;
+        box-shadow: 0 0 18px rgba(255, 215, 0, 0.95), 0 0 6px rgba(255, 255, 255, 0.8) !important;
+        transform: translateY(-6px) scale(1.02) !important;
         z-index: 8000 !important;
     }
 
@@ -146,11 +163,17 @@ klondike_full_html = """
         box-shadow: 0 12px 24px rgba(0,0,0,0.8), 0 0 18px rgba(212, 175, 55, 0.9) !important;
         z-index: 9999 !important;
     }
-    .card.highlight { animation: hintPulse 1s infinite alternate; border: 2px solid #b83b32 !important; }
-    @keyframes hintPulse {
-        0% { transform: scale(1); box-shadow: 0 0 5px #b83b32; }
-        100% { transform: scale(1.05); box-shadow: 0 0 15px #b83b32; }
+
+    /* 힌트: 초록색 빛 효과 적용 */
+    .card.highlight { 
+        animation: greenHintPulse 1s infinite alternate; 
+        border: 2px solid #2ecc71 !important; 
     }
+    @keyframes greenHintPulse {
+        0% { transform: scale(1); box-shadow: 0 0 6px #2ecc71, inset 0 0 4px #2ecc71; }
+        100% { transform: scale(1.06); box-shadow: 0 0 20px #00ff88, 0 0 10px #2ecc71; }
+    }
+
     .card.back {
         background: #141f2c; border: 1px solid #d4af37;
         background-image: url("data:image/svg+xml,%3Csvg width='24' height='41.569' viewBox='0 0 24 41.569' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 0L0 6.928v13.856L12 27.713l12-6.929V6.928L12 0zm0 2.309l9.6 5.543v11.085L12 24.48 2.4 18.937V7.852L12 2.31zM12 27.713L0 34.641v6.928h24v-6.928l-12-6.928z' fill='%23d4af37' fill-opacity='0.3'/%3E%3C/svg%3E");
@@ -170,7 +193,6 @@ klondike_full_html = """
 
     #fx-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2000; }
 
-    /* 모달 */
     #win-modal {
         position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
         background: rgba(12, 12, 15, 0.96); border: 2px solid #d4af37;
@@ -197,49 +219,64 @@ klondike_full_html = """
 </head>
 <body>
 
-<!-- 좌/우 상단 벚꽃 가지 + 전통 등불 (빛의 색깔 및 주기적 변동 적용) -->
+<!-- 상단 벚꽃 가지 -->
 <svg class="cherry-branch cherry-left" viewBox="0 0 200 200">
-    <path d="M 0 0 Q 60 40 120 20 T 180 60" stroke="#3a2312" stroke-width="5" fill="none" />
-    <path d="M 60 40 Q 90 70 110 100" stroke="#3a2312" stroke-width="3" fill="none" />
-    <!-- 벚꽃 꽃잎 (핑크빛 광원) -->
-    <g class="cherry-glow">
-        <circle cx="120" cy="20" r="12" fill="#ffc0cb" opacity="0.95" />
-        <circle cx="180" cy="60" r="14" fill="#ffb7c5" opacity="0.95" />
-        <circle cx="110" cy="100" r="10" fill="#ffb7c5" opacity="0.95" />
-    </g>
-    <!-- 등불 연결선 및 등불 (주황색/황금빛 광원) -->
-    <line x1="180" y1="60" x2="180" y2="95" stroke="#222" stroke-width="2" />
-    <g class="lantern-glow">
-        <rect x="168" y="95" width="24" height="32" rx="3" fill="#e65100" stroke="#d4af37" stroke-width="2"/>
-        <rect x="172" y="99" width="16" height="24" rx="1" fill="#ffb74d"/>
-        <line x1="180" y1="99" x2="180" y2="123" stroke="#e65100" stroke-width="1.5"/>
+    <path d="M 0 0 Q 70 50 130 25 T 190 70" stroke="#3a2312" stroke-width="5" fill="none" />
+    <path d="M 70 50 Q 100 80 120 110" stroke="#3a2312" stroke-width="3" fill="none" />
+    <g class="sakura-light">
+        <circle cx="130" cy="25" r="13" fill="#ffc0cb" />
+        <circle cx="190" cy="70" r="15" fill="#ffb7c5" />
+        <circle cx="120" cy="110" r="11" fill="#ffb7c5" />
+        <circle cx="80" cy="35" r="9" fill="#ffd1dc" />
     </g>
 </svg>
 
 <svg class="cherry-branch cherry-right" viewBox="0 0 200 200">
-    <path d="M 0 0 Q 60 40 120 20 T 180 60" stroke="#3a2312" stroke-width="5" fill="none" />
-    <path d="M 60 40 Q 90 70 110 100" stroke="#3a2312" stroke-width="3" fill="none" />
-    <g class="cherry-glow">
-        <circle cx="120" cy="20" r="12" fill="#ffc0cb" opacity="0.95" />
-        <circle cx="180" cy="60" r="14" fill="#ffb7c5" opacity="0.95" />
-        <circle cx="110" cy="100" r="10" fill="#ffb7c5" opacity="0.95" />
-    </g>
-    <line x1="180" y1="60" x2="180" y2="95" stroke="#222" stroke-width="2" />
-    <g class="lantern-glow">
-        <rect x="168" y="95" width="24" height="32" rx="3" fill="#e65100" stroke="#d4af37" stroke-width="2"/>
-        <rect x="172" y="99" width="16" height="24" rx="1" fill="#ffb74d"/>
-        <line x1="180" y1="99" x2="180" y2="123" stroke="#e65100" stroke-width="1.5"/>
+    <path d="M 0 0 Q 70 50 130 25 T 190 70" stroke="#3a2312" stroke-width="5" fill="none" />
+    <path d="M 70 50 Q 100 80 120 110" stroke="#3a2312" stroke-width="3" fill="none" />
+    <g class="sakura-light">
+        <circle cx="130" cy="25" r="13" fill="#ffc0cb" />
+        <circle cx="190" cy="70" r="15" fill="#ffb7c5" />
+        <circle cx="120" cy="110" r="11" fill="#ffb7c5" />
+        <circle cx="80" cy="35" r="9" fill="#ffd1dc" />
     </g>
 </svg>
 
-<!-- 하단 일본 풍격 전통 기와 건물 Silhouettes -->
-<svg class="bg-building building-left" viewBox="0 0 200 150">
-    <path d="M 10 150 L 10 90 L 0 90 L 30 60 L 170 60 L 200 90 L 190 90 L 190 150 Z" fill="#d4af37"/>
-    <path d="M 20 60 L 100 20 L 180 60 Z" fill="#b83b32"/>
+<!-- 토리이 실루엣 -->
+<svg class="bg-torii" viewBox="0 0 300 180">
+    <rect x="20" y="20" width="260" height="16" rx="4" fill="#d4af37"/>
+    <rect x="35" y="45" width="230" height="12" fill="#d4af37"/>
+    <rect x="65" y="45" width="18" height="135" fill="#b83b32"/>
+    <rect x="217" y="45" width="18" height="135" fill="#b83b32"/>
 </svg>
-<svg class="bg-building building-right" viewBox="0 0 200 150">
-    <path d="M 10 150 L 10 90 L 0 90 L 30 60 L 170 60 L 200 90 L 190 90 L 190 150 Z" fill="#d4af37"/>
-    <path d="M 20 60 L 100 20 L 180 60 Z" fill="#b83b32"/>
+
+<!-- 바닥 석등 오나먼트 -->
+<svg class="ground-lantern lantern-left" viewBox="0 0 100 160">
+    <path d="M 20 150 L 80 150 L 70 135 L 30 135 Z" fill="#2a2521"/>
+    <rect x="42" y="80" width="16" height="55" fill="#1f1b18"/>
+    <path d="M 25 80 L 75 80 L 70 70 L 30 70 Z" fill="#2a2521"/>
+    <g class="stone-glow">
+        <rect x="33" y="42" width="34" height="28" rx="2" fill="#ff9d00"/>
+        <rect x="38" y="46" width="24" height="20" rx="1" fill="#ffea75"/>
+    </g>
+    <rect x="33" y="42" width="34" height="28" fill="none" stroke="#2a2521" stroke-width="3"/>
+    <line x1="50" y1="42" x2="50" y2="70" stroke="#2a2521" stroke-width="2"/>
+    <path d="M 10 42 L 90 42 L 65 15 L 35 15 Z" fill="#3a322d"/>
+    <path d="M 40 15 Q 50 2 60 15 Z" fill="#2a2521"/>
+</svg>
+
+<svg class="ground-lantern lantern-right" viewBox="0 0 100 160">
+    <path d="M 20 150 L 80 150 L 70 135 L 30 135 Z" fill="#2a2521"/>
+    <rect x="42" y="80" width="16" height="55" fill="#1f1b18"/>
+    <path d="M 25 80 L 75 80 L 70 70 L 30 70 Z" fill="#2a2521"/>
+    <g class="stone-glow">
+        <rect x="33" y="42" width="34" height="28" rx="2" fill="#ff9d00"/>
+        <rect x="38" y="46" width="24" height="20" rx="1" fill="#ffea75"/>
+    </g>
+    <rect x="33" y="42" width="34" height="28" fill="none" stroke="#2a2521" stroke-width="3"/>
+    <line x1="50" y1="42" x2="50" y2="70" stroke="#2a2521" stroke-width="2"/>
+    <path d="M 10 42 L 90 42 L 65 15 L 35 15 Z" fill="#3a322d"/>
+    <path d="M 40 15 Q 50 2 60 15 Z" fill="#2a2521"/>
 </svg>
 
 <div id="top-bar">
@@ -291,11 +328,21 @@ function clearSelection() {
     document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
 }
 
+/* 포개진 카드들(선택 카드 하위 전체)이 함께 빛나도록 개선된 UI 업데이트 함수 */
 function updateSelectedUI() {
     document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
-    if (selectedInfo && selectedInfo.card) {
-        let selectedEl = document.getElementById(selectedInfo.card.uid);
-        if (selectedEl) selectedEl.classList.add('selected');
+    if (!selectedInfo || !selectedInfo.card) return;
+
+    let { srcType, colIdx, cardIdx, card } = selectedInfo;
+    if (srcType === 'tableau') {
+        for (let k = cardIdx; k < tableau[colIdx].length; k++) {
+            let childCard = tableau[colIdx][k];
+            let el = document.getElementById(childCard.uid);
+            if (el) el.classList.add('selected');
+        }
+    } else {
+        let el = document.getElementById(card.uid);
+        if (el) el.classList.add('selected');
     }
 }
 
@@ -617,11 +664,9 @@ function removeSourceCard(type, col, idx) {
     return Array.isArray(cards) ? cards : [cards];
 }
 
-/* 스톡/버려진 카드를 전수 조사하여 완전히 유효한 수가 없는지 판단하는 최신화 기준 */
 function checkNoMovesCondition() {
     if (isGameWon || isGameOver) return;
 
-    // 1. 현재 버려진 카드(Waste)에서 옮길 수 있는지 체킹
     if (waste.length > 0) {
         let wCard = waste[waste.length - 1];
         for (let f = 0; f < 4; f++) {
@@ -634,7 +679,6 @@ function checkNoMovesCondition() {
         }
     }
 
-    // 2. 필드(Tableau)의 오픈 카드들에서 옮길 수 있는지 체킹
     for (let t = 0; t < 7; t++) {
         if (tableau[t].length === 0) continue;
         for (let j = 0; j < tableau[t].length; j++) {
@@ -654,8 +698,6 @@ function checkNoMovesCondition() {
         }
     }
 
-    // 3. 스톡(Stock)에 남아있는 모든 카드들을 검수
-    // 스톡에 남아있는 카드 중 단 하나라도 필드나 완성덱으로 이동될 가능성이 있다면 종료하지 않음
     if (stock.length > 0) {
         for (let i = 0; i < stock.length; i++) {
             let sCard = stock[i];
@@ -670,7 +712,6 @@ function checkNoMovesCondition() {
         }
     }
 
-    // 위 3가지 가능성을 모두 통과 못 했다면 Game Over 판정
     triggerFailScreen();
 }
 
