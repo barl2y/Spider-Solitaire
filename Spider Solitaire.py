@@ -56,49 +56,28 @@ klondike_full_html = """
         position: relative;
     }
 
-    /* 벚꽃 가지 오나먼트 및 분홍색 광원 애니메이션 */
-    .cherry-branch {
-        position: absolute; top: 35px; pointer-events: none; z-index: 6;
-    }
+    .cherry-branch { position: absolute; top: 35px; pointer-events: none; z-index: 6; }
     .cherry-left { left: -10px; width: 320px; height: 320px; }
     .cherry-right { right: -10px; width: 320px; height: 320px; transform: scaleX(-1); }
 
-    .sakura-light {
-        animation: sakuraPulse 3.5s ease-in-out infinite alternate;
-    }
+    .sakura-light { animation: sakuraPulse 3.5s ease-in-out infinite alternate; }
     @keyframes sakuraPulse {
         0% { filter: drop-shadow(0 0 5px rgba(255, 183, 197, 0.4)); opacity: 0.85; }
         50% { filter: drop-shadow(0 0 16px rgba(255, 183, 197, 0.8)); opacity: 1; }
         100% { filter: drop-shadow(0 0 25px rgba(255, 105, 180, 0.9)); opacity: 0.9; }
     }
 
-    /* 땅에 있는 석등(Stone Lantern) 및 지상 주황색 불빛 애니메이션 */
-    .ground-lantern {
-        position: absolute; bottom: 50px; pointer-events: none; z-index: 5;
-    }
+    .ground-lantern { position: absolute; bottom: 50px; pointer-events: none; z-index: 5; }
     .lantern-left { left: 25px; width: 140px; height: 220px; }
     .lantern-right { right: 25px; width: 140px; height: 220px; transform: scaleX(-1); }
 
-    .stone-glow {
-        animation: stoneLanternPulse 2.1s ease-in-out infinite alternate;
-        transform-origin: center;
-    }
+    .stone-glow { animation: stoneLanternPulse 2.1s ease-in-out infinite alternate; transform-origin: center; }
     @keyframes stoneLanternPulse {
-        0% { 
-            filter: drop-shadow(0 0 6px rgba(255, 150, 40, 0.5)) drop-shadow(0 0 15px rgba(255, 100, 0, 0.3)); 
-            opacity: 0.75; 
-        }
-        50% { 
-            filter: drop-shadow(0 0 18px rgba(255, 170, 50, 0.85)) drop-shadow(0 0 30px rgba(255, 120, 0, 0.6)); 
-            opacity: 1; 
-        }
-        100% { 
-            filter: drop-shadow(0 0 28px rgba(255, 190, 60, 1)) drop-shadow(0 0 45px rgba(255, 90, 0, 0.8)); 
-            opacity: 0.9; 
-        }
+        0% { filter: drop-shadow(0 0 6px rgba(255, 150, 40, 0.5)) drop-shadow(0 0 15px rgba(255, 100, 0, 0.3)); opacity: 0.75; }
+        50% { filter: drop-shadow(0 0 18px rgba(255, 170, 50, 0.85)) drop-shadow(0 0 30px rgba(255, 120, 0, 0.6)); opacity: 1; }
+        100% { filter: drop-shadow(0 0 28px rgba(255, 190, 60, 1)) drop-shadow(0 0 45px rgba(255, 90, 0, 0.8)); opacity: 0.9; }
     }
 
-    /* 토리이 실루엣 */
     .bg-torii {
         position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
         width: 360px; opacity: 0.12; pointer-events: none; z-index: 1;
@@ -150,7 +129,6 @@ klondike_full_html = """
         z-index: 10;
     }
 
-    /* 선택된 카드들(포개진 묶음 포함)의 황금빛 네온 효과 */
     .card.selected {
         border: 2px solid #ffd700 !important;
         box-shadow: 0 0 18px rgba(255, 215, 0, 0.95), 0 0 6px rgba(255, 255, 255, 0.8) !important;
@@ -164,7 +142,7 @@ klondike_full_html = """
         z-index: 9999 !important;
     }
 
-    /* 힌트: 초록색 빛 효과 적용 */
+    /* 초록색 힌트 애니메이션 */
     .card.highlight { 
         animation: greenHintPulse 1s infinite alternate; 
         border: 2px solid #2ecc71 !important; 
@@ -219,7 +197,6 @@ klondike_full_html = """
 </head>
 <body>
 
-<!-- 상단 벚꽃 가지 -->
 <svg class="cherry-branch cherry-left" viewBox="0 0 200 200">
     <path d="M 0 0 Q 70 50 130 25 T 190 70" stroke="#3a2312" stroke-width="5" fill="none" />
     <path d="M 70 50 Q 100 80 120 110" stroke="#3a2312" stroke-width="3" fill="none" />
@@ -242,7 +219,6 @@ klondike_full_html = """
     </g>
 </svg>
 
-<!-- 토리이 실루엣 -->
 <svg class="bg-torii" viewBox="0 0 300 180">
     <rect x="20" y="20" width="260" height="16" rx="4" fill="#d4af37"/>
     <rect x="35" y="45" width="230" height="12" fill="#d4af37"/>
@@ -250,7 +226,6 @@ klondike_full_html = """
     <rect x="217" y="45" width="18" height="135" fill="#b83b32"/>
 </svg>
 
-<!-- 바닥 석등 오나먼트 -->
 <svg class="ground-lantern lantern-left" viewBox="0 0 100 160">
     <path d="M 20 150 L 80 150 L 70 135 L 30 135 Z" fill="#2a2521"/>
     <rect x="42" y="80" width="16" height="55" fill="#1f1b18"/>
@@ -328,7 +303,6 @@ function clearSelection() {
     document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
 }
 
-/* 포개진 카드들(선택 카드 하위 전체)이 함께 빛나도록 개선된 UI 업데이트 함수 */
 function updateSelectedUI() {
     document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
     if (!selectedInfo || !selectedInfo.card) return;
@@ -664,58 +638,98 @@ function removeSourceCard(type, col, idx) {
     return Array.isArray(cards) ? cards : [cards];
 }
 
-function checkNoMovesCondition() {
-    if (isGameWon || isGameOver) return;
-
+/* 유효한 이동 수(Valid Move) 검사 함수 */
+function getAvailableMove() {
+    // 1. 버림패(Waste)에서 이동 가능한지 확인
     if (waste.length > 0) {
         let wCard = waste[waste.length - 1];
         for (let f = 0; f < 4; f++) {
             let topCard = foundations[f][foundations[f].length - 1];
-            if ((!topCard && wCard.value === 1) || (topCard && topCard.suit === wCard.suit && topCard.value === wCard.value - 1)) return;
+            if ((!topCard && wCard.value === 1) || (topCard && topCard.suit === wCard.suit && topCard.value === wCard.value - 1)) {
+                return { card: wCard };
+            }
         }
         for (let t = 0; t < 7; t++) {
             let topCard = tableau[t][tableau[t].length - 1];
-            if ((!topCard && wCard.value === 13) || (topCard && topCard.color !== wCard.color && topCard.value === wCard.value + 1)) return;
+            if ((!topCard && wCard.value === 13) || (topCard && topCard.color !== wCard.color && topCard.value === wCard.value + 1)) {
+                return { card: wCard };
+            }
         }
     }
 
+    // 2. 바닥 카드(Tableau) 간 이동 가능한지 확인
     for (let t = 0; t < 7; t++) {
         if (tableau[t].length === 0) continue;
         for (let j = 0; j < tableau[t].length; j++) {
             let card = tableau[t][j];
             if (!card.faceUp) continue;
+
             if (j === tableau[t].length - 1) {
                 for (let f = 0; f < 4; f++) {
                     let topCard = foundations[f][foundations[f].length - 1];
-                    if ((!topCard && card.value === 1) || (topCard && card.suit === topCard.suit && topCard.value === topCard.value - 1)) return;
+                    if ((!topCard && card.value === 1) || (topCard && card.suit === topCard.suit && topCard.value === topCard.value - 1)) {
+                        return { card: card };
+                    }
                 }
             }
+
             for (let t2 = 0; t2 < 7; t2++) {
                 if (t === t2) continue;
                 let topCard = tableau[t2][tableau[t2].length - 1];
-                if ((!topCard && card.value === 13 && j > 0) || (topCard && topCard.color !== card.color && topCard.value === card.value + 1)) return;
+                if ((!topCard && card.value === 13 && j > 0) || (topCard && topCard.color !== card.color && topCard.value === card.value + 1)) {
+                    return { card: card };
+                }
             }
         }
     }
 
-    if (stock.length > 0) {
-        for (let i = 0; i < stock.length; i++) {
-            let sCard = stock[i];
-            for (let f = 0; f < 4; f++) {
-                let topCard = foundations[f][foundations[f].length - 1];
-                if ((!topCard && sCard.value === 1) || (topCard && topCard.suit === sCard.suit && topCard.value === sCard.value - 1)) return;
+    // 3. 스톡(Stock) 카드 전체를 뒤집었을 때 이동 가능한 수가 있는지 검사
+    let allStockCards = [...stock, ...waste.slice().reverse()];
+    for (let i = 0; i < allStockCards.length; i++) {
+        let sCard = allStockCards[i];
+        for (let f = 0; f < 4; f++) {
+            let topCard = foundations[f][foundations[f].length - 1];
+            if ((!topCard && sCard.value === 1) || (topCard && topCard.suit === sCard.suit && topCard.value === sCard.value - 1)) {
+                return { card: stock.length > 0 ? stock[stock.length - 1] : waste[waste.length - 1], isStock: true };
             }
-            for (let t = 0; t < 7; t++) {
-                let topCard = tableau[t][tableau[t].length - 1];
-                if ((!topCard && sCard.value === 13) || (topCard && topCard.color !== sCard.color && topCard.value === sCard.value + 1)) return;
+        }
+        for (let t = 0; t < 7; t++) {
+            let topCard = tableau[t][tableau[t].length - 1];
+            if ((!topCard && sCard.value === 13) || (topCard && topCard.color !== sCard.color && topCard.value === sCard.value + 1)) {
+                return { card: stock.length > 0 ? stock[stock.length - 1] : waste[waste.length - 1], isStock: true };
             }
         }
     }
 
-    triggerFailScreen();
+    return null;
+}
+
+/* 힌트 버튼 수정 로직 */
+function showHint() {
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('highlight'));
+    if (isGameWon || isGameOver) return;
+
+    let move = getAvailableMove();
+    if (move && move.card) {
+        let el = document.getElementById(move.card.uid);
+        if (el) el.classList.add('highlight');
+    } else {
+        triggerFailScreen();
+    }
+}
+
+/* 완전히 막혔는지 검사하고 실패 화면을 즉시 출력 */
+function checkNoMovesCondition() {
+    if (isGameWon || isGameOver) return;
+
+    let move = getAvailableMove();
+    if (!move) {
+        triggerFailScreen();
+    }
 }
 
 function triggerFailScreen() {
+    if (isGameOver) return;
     isGameOver = true;
     clearInterval(timerInterval);
     launchCrimsonShatterImpact();
@@ -765,33 +779,6 @@ function launchCrimsonShatterImpact() {
         if (shockwaves.some(s => s.alpha > 0) || particles.some(p => p.life > 0)) requestAnimationFrame(anim);
     }
     anim();
-}
-
-function showHint() {
-    document.querySelectorAll('.card').forEach(c => c.classList.remove('highlight'));
-    if (waste.length > 0) {
-        let wCard = waste[waste.length - 1];
-        for (let f = 0; f < 4; f++) {
-            let topCard = foundations[f][foundations[f].length - 1];
-            if ((!topCard && wCard.value === 1) || (topCard && topCard.suit === wCard.suit && topCard.value === wCard.value - 1)) {
-                document.getElementById(wCard.uid)?.classList.add('highlight'); return;
-            }
-        }
-    }
-    for (let t = 0; t < 7; t++) {
-        if (tableau[t].length === 0) continue;
-        let tCard = tableau[t][tableau[t].length - 1];
-        for (let f = 0; f < 4; f++) {
-            let topCard = foundations[f][foundations[f].length - 1];
-            if ((!topCard && tCard.value === 1) || (topCard && tCard.suit === tCard.suit && topCard.value === tCard.value - 1)) {
-                document.getElementById(tCard.uid)?.classList.add('highlight'); return;
-            }
-        }
-    }
-    if (stock.length > 0) {
-        let stockEl = document.getElementById(stock[stock.length - 1].uid);
-        if (stockEl) stockEl.classList.add('highlight');
-    }
 }
 
 function checkAutoCompleteCondition() {
