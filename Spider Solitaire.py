@@ -655,7 +655,7 @@ function removeSourceCard(type, col, idx) {
     return Array.isArray(cards) ? cards : [cards];
 }
 
-/* 목표 위치(Target Pos) 정보를 함께 계산하는 유효 이동 검사 */
+/* 개선된 유효 이동 검색 (카드 묶음 정보 및 정확한 목표 지점 포함) */
 function getAvailableMove() {
     // 1. 버림패(Waste)에서 이동
     if (waste.length > 0) {
@@ -663,59 +663,68 @@ function getAvailableMove() {
         for (let f = 0; f < 4; f++) {
             let topCard = foundations[f][foundations[f].length - 1];
             if ((!topCard && wCard.value === 1) || (topCard && topCard.suit === wCard.suit && topCard.value === wCard.value - 1)) {
-                return { card: wCard, targetX: offsetX + (cardW + gap) * (3 + f), targetY: gap, targetSlotId: `slot_f_${f}` };
+                return { card: wCard, srcType: 'waste', targetX: offsetX + (cardW + gap) * (3 + f), targetY: gap, targetSlotId: `slot_f_${f}` };
             }
         }
         for (let t = 0; t < 7; t++) {
             let topCard = tableau[t][tableau[t].length - 1];
             if ((!topCard && wCard.value === 13) || (topCard && topCard.color !== wCard.color && topCard.value === wCard.value + 1)) {
                 let targetY = startY + tableau[t].length * cardSpacing;
-                return { card: wCard, targetX: offsetX + (cardW + gap) * t, targetY: targetY, targetSlotId: `slot_t_${t}` };
+                return { card: wCard, srcType: 'waste', targetX: offsetX + (cardW + gap) * t, targetY: targetY, targetSlotId: `slot_t_${t}` };
             }
         }
     }
 
-    // 2. 바닥 카드(Tableau) 간 이동
+    // 2. 바닥 카드(Tableau) 간 이동 (앞면 카드만 검사)
     for (let t = 0; t < 7; t++) {
         if (tableau[t].length === 0) continue;
         for (let j = 0; j < tableau[t].length; j++) {
             let card = tableau[t][j];
+            
+            // 뒤집혀 있는 카드는 힌트 대상에서 절대 제외
             if (!card.faceUp) continue;
 
+            // 맨 위에 있는 단일 카드의 재단(Foundation) 이동
             if (j === tableau[t].length - 1) {
                 for (let f = 0; f < 4; f++) {
                     let topCard = foundations[f][foundations[f].length - 1];
                     if ((!topCard && card.value === 1) || (topCard && card.suit === topCard.suit && topCard.value === topCard.value - 1)) {
-                        return { card: card, targetX: offsetX + (cardW + gap) * (3 + f), targetY: gap, targetSlotId: `slot_f_${f}` };
+                        return { card: card, srcType: 'tableau', colIdx: t, cardIdx: j, targetX: offsetX + (cardW + gap) * (3 + f), targetY: gap, targetSlotId: `slot_f_${f}` };
                     }
                 }
             }
 
+            // 카드 묶음(예: 7-6-5)의 타블로 간 이동
             for (let t2 = 0; t2 < 7; t2++) {
                 if (t === t2) continue;
                 let topCard = tableau[t2][tableau[t2].length - 1];
                 if ((!topCard && card.value === 13 && j > 0) || (topCard && topCard.color !== card.color && topCard.value === card.value + 1)) {
                     let targetY = startY + tableau[t2].length * cardSpacing;
-                    return { card: card, targetX: offsetX + (cardW + gap) * t2, targetY: targetY, targetSlotId: `slot_t_${t2}` };
+                    return { card: card, srcType: 'tableau', colIdx: t, cardIdx: j, targetX: offsetX + (cardW + gap) * t2, targetY: targetY, targetSlotId: `slot_t_${t2}` };
                 }
             }
         }
     }
 
-    // 3. 스톡(Stock) 카드 뒤집어서 가능한 이동
-    let allStockCards = [...stock, ...waste.slice().reverse()];
-    for (let i = 0; i < allStockCards.length; i++) {
-        let sCard = allStockCards[i];
-        for (let f = 0; f < 4; f++) {
-            let topCard = foundations[f][foundations[f].length - 1];
-            if ((!topCard && sCard.value === 1) || (topCard && topCard.suit === sCard.suit && topCard.value === sCard.value - 1)) {
-                return { card: stock.length > 0 ? stock[stock.length - 1] : waste[waste.length - 1], targetX: offsetX + cardW + gap, targetY: gap, targetSlotId: 'slot_waste' };
+    // 3. 스톡(Stock) 카드 이동 안내
+    if (stock.length > 0 || waste.length > 0) {
+        let allStockCards = [...stock, ...waste.slice().reverse()];
+        for (let i = 0; i < allStockCards.length; i++) {
+            let sCard = allStockCards[i];
+            let canMove = false;
+            for (let f = 0; f < 4; f++) {
+                let topCard = foundations[f][foundations[f].length - 1];
+                if ((!topCard && sCard.value === 1) || (topCard && topCard.suit === sCard.suit && topCard.value === sCard.value - 1)) { canMove = true; break; }
             }
-        }
-        for (let t = 0; t < 7; t++) {
-            let topCard = tableau[t][tableau[t].length - 1];
-            if ((!topCard && sCard.value === 13) || (topCard && topCard.color !== sCard.color && topCard.value === sCard.value + 1)) {
-                return { card: stock.length > 0 ? stock[stock.length - 1] : waste[waste.length - 1], targetX: offsetX + cardW + gap, targetY: gap, targetSlotId: 'slot_waste' };
+            if (!canMove) {
+                for (let t = 0; t < 7; t++) {
+                    let topCard = tableau[t][tableau[t].length - 1];
+                    if ((!topCard && sCard.value === 13) || (topCard && topCard.color !== sCard.color && topCard.value === sCard.value + 1)) { canMove = true; break; }
+                }
+            }
+            if (canMove) {
+                let targetCard = stock.length > 0 ? stock[stock.length - 1] : waste[waste.length - 1];
+                return { card: targetCard, srcType: 'stock', targetX: offsetX + cardW + gap, targetY: gap, targetSlotId: 'slot_waste' };
             }
         }
     }
@@ -723,46 +732,69 @@ function getAvailableMove() {
     return null;
 }
 
-/* 어디로 이동해야 할지 보여주는 애니메이션 힌트 기능 */
+/* 카드 묶음 전체가 같이 움직이는 애니메이션 힌트 */
 function showHint() {
     clearSelection();
     if (isGameWon || isGameOver) return;
 
     let move = getAvailableMove();
     if (move && move.card) {
-        let el = document.getElementById(move.card.uid);
-        if (el) el.classList.add('highlight');
+        let cardsToAnimate = [];
 
-        // 목표 슬롯 발광
+        // 타블로(Tableau) 묶음 이동일 경우 하위 카드까지 모두 수집
+        if (move.srcType === 'tableau' && move.colIdx !== undefined) {
+            for (let k = move.cardIdx; k < tableau[move.colIdx].length; k++) {
+                let childCard = tableau[move.colIdx][k];
+                cardsToAnimate.push(childCard);
+                let el = document.getElementById(childCard.uid);
+                if (el) el.classList.add('highlight');
+            }
+        } else {
+            cardsToAnimate.push(move.card);
+            let el = document.getElementById(move.card.uid);
+            if (el) el.classList.add('highlight');
+        }
+
+        // 정확한 목적지 슬롯만 초록색 발광
         if (move.targetSlotId) {
             let slotEl = document.getElementById(move.targetSlotId);
             if (slotEl) slotEl.classList.add('hint-target');
         }
 
-        // 이동 궤적 애니메이션 (Ghost Card 생성)
-        if (el && move.targetX !== undefined && move.targetY !== undefined) {
+        // 카드 묶음 전체 애니메이션 생성 및 실행
+        if (cardsToAnimate.length > 0 && move.targetX !== undefined && move.targetY !== undefined) {
             const board = document.getElementById('game-board');
-            let ghost = el.cloneNode(true);
-            ghost.id = 'hint_ghost';
-            ghost.classList.remove('highlight', 'selected');
-            ghost.classList.add('hint-ghost-card');
-            
-            let startX = parseFloat(el.style.left);
-            let startY = parseFloat(el.style.top);
-            ghost.style.left = startX + 'px';
-            ghost.style.top = startY + 'px';
+            let ghosts = [];
 
-            board.appendChild(ghost);
+            cardsToAnimate.forEach((c, index) => {
+                let origEl = document.getElementById(c.uid);
+                if (!origEl) return;
 
-            // 출발점 -> 목적지 이동 애니메이션
+                let ghost = origEl.cloneNode(true);
+                ghost.id = `hint_ghost_${index}`;
+                ghost.classList.remove('highlight', 'selected');
+                ghost.classList.add('hint-ghost-card');
+
+                let startX = parseFloat(origEl.style.left);
+                let startY = parseFloat(origEl.style.top);
+                ghost.style.left = startX + 'px';
+                ghost.style.top = startY + 'px';
+
+                board.appendChild(ghost);
+                ghosts.push({ el: ghost, targetY: move.targetY + (index * cardSpacing) });
+            });
+
+            // 묶음 전체가 함께 이동
             setTimeout(() => {
-                ghost.style.left = move.targetX + 'px';
-                ghost.style.top = move.targetY + 'px';
+                ghosts.forEach(g => {
+                    g.el.style.left = move.targetX + 'px';
+                    g.el.style.top = g.targetY + 'px';
+                });
             }, 50);
 
-            // 애니메이션 종료 후 제거
+            // 애니메이션 종료 후 잔상 카드 삭제
             setTimeout(() => {
-                if (ghost) ghost.remove();
+                ghosts.forEach(g => { if (g.el) g.el.remove(); });
             }, 900);
         }
     } else {
