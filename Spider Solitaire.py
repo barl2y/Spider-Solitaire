@@ -142,7 +142,6 @@ klondike_full_html = """
         z-index: 9999 !important;
     }
 
-    /* 초록색 힌트 발광 스타일 */
     .card.highlight { 
         animation: greenHintPulse 0.8s infinite alternate; 
         border: 2px solid #2ecc71 !important; 
@@ -152,7 +151,6 @@ klondike_full_html = """
         100% { transform: scale(1.06); box-shadow: 0 0 22px #00ff88, 0 0 12px #2ecc71; }
     }
 
-    /* 힌트 애니메이션용 잔상 카드 */
     .hint-ghost-card {
         position: absolute; pointer-events: none; border-radius: 6px;
         border: 2px solid #00ff88 !important;
@@ -186,28 +184,31 @@ klondike_full_html = """
 
     #fx-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2000; }
 
-    #win-modal {
+    /* 메인 선택 화면 및 모달 모음 */
+    .overlay-modal {
         position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
         background: rgba(12, 12, 15, 0.96); border: 2px solid #d4af37;
         padding: 30px 45px; text-align: center; color: #f3ebdd;
         box-shadow: 0 0 40px rgba(0,0,0,0.95), 0 0 20px rgba(212, 175, 55, 0.6);
-        z-index: 3000; display: none; border-radius: 4px;
+        z-index: 3000; border-radius: 6px; min-width: 320px;
     }
 
+    #start-menu { display: flex; flex-direction: column; gap: 15px; }
+    .menu-title { font-size: 22px; font-weight: 800; color: #d4af37; margin-bottom: 10px; letter-spacing: 0.2em; }
+    .diff-btn { padding: 10px 20px; font-size: 16px; border-radius: 4px; }
+
+    #win-modal, #fail-modal { display: none; }
+
     #fail-modal {
-        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
         background: radial-gradient(circle, rgba(35, 10, 15, 0.98) 0%, rgba(10, 5, 8, 0.98) 100%);
-        border: 2px solid #ff0055; padding: 35px 50px; text-align: center; color: #f3ebdd;
+        border-color: #ff0055;
         box-shadow: 0 0 50px rgba(255, 0, 85, 0.6), inset 0 0 20px rgba(255, 0, 85, 0.3);
-        z-index: 3000; display: none; border-radius: 6px;
     }
     #fail-modal h2 { font-weight: 800; color: #ff0055; letter-spacing: 0.25em; margin-bottom: 12px; font-size: 24px; text-shadow: 0 0 10px #ff0055; }
-    #fail-modal p { font-size: 15px; margin: 6px 0; color: #f3ebdd; }
     .btn-fail {
         background: linear-gradient(180deg, #ff0055 0%, #80002a 100%) !important;
         border-color: #ff99b3 !important; margin-top: 18px;
     }
-    .btn-fail:hover { box-shadow: 0 0 15px rgba(255,0,85,0.8) !important; }
 </style>
 </head>
 <body>
@@ -241,37 +242,9 @@ klondike_full_html = """
     <rect x="217" y="45" width="18" height="135" fill="#b83b32"/>
 </svg>
 
-<svg class="ground-lantern lantern-left" viewBox="0 0 100 160">
-    <path d="M 20 150 L 80 150 L 70 135 L 30 135 Z" fill="#2a2521"/>
-    <rect x="42" y="80" width="16" height="55" fill="#1f1b18"/>
-    <path d="M 25 80 L 75 80 L 70 70 L 30 70 Z" fill="#2a2521"/>
-    <g class="stone-glow">
-        <rect x="33" y="42" width="34" height="28" rx="2" fill="#ff9d00"/>
-        <rect x="38" y="46" width="24" height="20" rx="1" fill="#ffea75"/>
-    </g>
-    <rect x="33" y="42" width="34" height="28" fill="none" stroke="#2a2521" stroke-width="3"/>
-    <line x1="50" y1="42" x2="50" y2="70" stroke="#2a2521" stroke-width="2"/>
-    <path d="M 10 42 L 90 42 L 65 15 L 35 15 Z" fill="#3a322d"/>
-    <path d="M 40 15 Q 50 2 60 15 Z" fill="#2a2521"/>
-</svg>
-
-<svg class="ground-lantern lantern-right" viewBox="0 0 100 160">
-    <path d="M 20 150 L 80 150 L 70 135 L 30 135 Z" fill="#2a2521"/>
-    <rect x="42" y="80" width="16" height="55" fill="#1f1b18"/>
-    <path d="M 25 80 L 75 80 L 70 70 L 30 70 Z" fill="#2a2521"/>
-    <g class="stone-glow">
-        <rect x="33" y="42" width="34" height="28" rx="2" fill="#ff9d00"/>
-        <rect x="38" y="46" width="24" height="20" rx="1" fill="#ffea75"/>
-    </g>
-    <rect x="33" y="42" width="34" height="28" fill="none" stroke="#2a2521" stroke-width="3"/>
-    <line x1="50" y1="42" x2="50" y2="70" stroke="#2a2521" stroke-width="2"/>
-    <path d="M 10 42 L 90 42 L 65 15 L 35 15 Z" fill="#3a322d"/>
-    <path d="M 40 15 Q 50 2 60 15 Z" fill="#2a2521"/>
-</svg>
-
 <div id="top-bar">
     <div class="jp-title">クロンダイク — Klondike Solitaire</div>
-    <div class="jp-stats">점수: <span id="score">0</span> &nbsp;|&nbsp; 시간: <span id="timer">00:00</span></div>
+    <div class="jp-stats">난이도: <span id="diff-label">보통</span> &nbsp;|&nbsp; 점수: <span id="score">0</span> &nbsp;|&nbsp; 시간: <span id="timer">00:00</span></div>
 </div>
 
 <div id="game-board">
@@ -279,27 +252,37 @@ klondike_full_html = """
     <canvas id="fx-canvas"></canvas>
 </div>
 
+<!-- 난이도 선택 메인 메뉴 -->
+<div id="start-menu" class="overlay-modal">
+    <div class="menu-title">난이도 선택</div>
+    <button class="btn diff-btn" onclick="startGame('easy')">🟢 쉬움 (1장 뒤집기)</button>
+    <button class="btn diff-btn" onclick="startGame('normal')">🟡 보통 (3장 뒤집기)</button>
+    <button class="btn diff-btn" onclick="startGame('hard')">🔴 어려움 (3장 뒤집기 + 제한)</button>
+    <button class="btn diff-btn" style="border-color:#00ff88; color:#00ff88;" onclick="enableCustomPlacementMode()">🛠️ 카드 직접 배치 모드</button>
+</div>
+
 <div id="bottom-bar">
-    <button class="btn" onclick="initGame()">새 게임</button>
-    <button class="btn" onclick="undoMove()">되돌리기 (Undo)</button>
+    <button class="btn" onclick="showStartMenu()">메인 메뉴</button>
+    <button class="btn" onclick="initGame()">다시 시작</button>
+    <button class="btn" onclick="undoMove()">되돌리기</button>
     <button class="btn" onclick="showHint()">힌트 (Hint)</button>
 </div>
 
-<div id="win-modal">
+<div id="win-modal" class="overlay-modal">
     <h2>祝・見事クリア！</h2>
     <p>축하합니다! 게임을 완성하셨습니다.</p>
     <hr style="border:0; border-top:1px solid rgba(212,175,55,0.3); margin: 12px 0;">
     <p>최종 점수: <span id="final-score" style="color:#d4af37; font-weight:bold;">0</span>점</p>
     <p>소요 시간: <span id="final-time" style="color:#d4af37; font-weight:bold;">00:00</span></p>
-    <button class="btn" style="margin-top:15px;" onclick="initGame()">다시 도전하기</button>
+    <button class="btn" style="margin-top:15px;" onclick="showStartMenu()">메인으로 돌아가기</button>
 </div>
 
-<div id="fail-modal">
+<div id="fail-modal" class="overlay-modal">
     <h2>NO MORE MOVES</h2>
-    <p>더 이상 이동 가능한 수가 없습니다!</p>
+    <p>더 이상 유효한 이동이 없습니다!</p>
     <hr style="border:0; border-top:1px solid rgba(255,0,85,0.3); margin: 12px 0;">
     <p>최종 점수: <span id="fail-score" style="color:#ff0055; font-weight:bold;">0</span>점</p>
-    <button class="btn btn-fail" onclick="initGame()">다시 시도하기</button>
+    <button class="btn btn-fail" onclick="showStartMenu()">메인으로 돌아가기</button>
 </div>
 
 <script>
@@ -312,6 +295,42 @@ let dragGroup = [], isDragging = false, dragStartX = 0, dragStartY = 0;
 let cardW = 0, cardH = 0, gap = 0, startY = 0, offsetX = 0, cardSpacing = 0;
 let timeSeconds = 0, timerInterval = null, score = 0, isGameWon = false, isGameOver = false;
 let selectedInfo = null;
+
+let currentDifficulty = 'normal';
+let drawCount = 3;
+let stockCycleWithoutProgress = 0;
+let isCustomMode = false;
+
+function showStartMenu() {
+    clearInterval(timerInterval);
+    document.getElementById('start-menu').style.display = 'flex';
+    document.getElementById('win-modal').style.display = 'none';
+    document.getElementById('fail-modal').style.display = 'none';
+}
+
+function startGame(diff) {
+    currentDifficulty = diff;
+    isCustomMode = false;
+    if (diff === 'easy') {
+        drawCount = 1;
+        document.getElementById('diff-label').innerText = '쉬움';
+    } else if (diff === 'normal') {
+        drawCount = 3;
+        document.getElementById('diff-label').innerText = '보통';
+    } else {
+        drawCount = 3;
+        document.getElementById('diff-label').innerText = '어려움';
+    }
+    document.getElementById('start-menu').style.display = 'none';
+    initGame();
+}
+
+function enableCustomPlacementMode() {
+    isCustomMode = true;
+    document.getElementById('diff-label').innerText = '배치 모드';
+    document.getElementById('start-menu').style.display = 'none';
+    initGame();
+}
 
 function clearSelection() {
     selectedInfo = null;
@@ -357,6 +376,7 @@ function initGame() {
     document.getElementById('auto-btn').style.display = 'none';
     isGameWon = false;
     isGameOver = false;
+    stockCycleWithoutProgress = 0;
     clearSelection();
 
     let deck = [], idCounter = 0;
@@ -364,11 +384,14 @@ function initGame() {
         for (let v = 1; v <= 13; v++) {
             deck.push({
                 suit: SUITS[s], color: (s === 1 || s === 2) ? 'red' : 'black',
-                value: v, name: VALUES[v-1], faceUp: false, uid: 'card_' + (idCounter++)
+                value: v, name: VALUES[v-1], faceUp: isCustomMode, uid: 'card_' + (idCounter++)
             });
         }
     }
-    deck.sort(() => Math.random() - 0.5);
+
+    if (!isCustomMode) {
+        deck.sort(() => Math.random() - 0.5);
+    }
 
     tableau = [[], [], [], [], [], [], []]; foundations = [[], [], [], []];
     waste = []; history = []; score = 0;
@@ -376,7 +399,7 @@ function initGame() {
     for (let i = 0; i < 7; i++) {
         for (let j = 0; j <= i; j++) {
             let card = deck.pop();
-            if (j === i) card.faceUp = true;
+            if (j === i || isCustomMode) card.faceUp = true;
             tableau[i].push(card);
         }
     }
@@ -496,11 +519,21 @@ function handleStockClick() {
     if (isGameWon || isGameOver) return;
     clearSelection();
     saveState();
+
     if (stock.length === 0) {
+        stockCycleWithoutProgress++;
+        if (currentDifficulty === 'hard' && stockCycleWithoutProgress >= 2) {
+            triggerFailScreen();
+            return;
+        }
         stock = waste.reverse().map(c => ({...c, faceUp: false}));
         waste = [];
     } else {
-        let card = stock.pop(); card.faceUp = true; waste.push(card);
+        for (let i = 0; i < drawCount && stock.length > 0; i++) {
+            let card = stock.pop();
+            card.faceUp = true;
+            waste.push(card);
+        }
     }
     render();
 }
@@ -578,7 +611,8 @@ function tryMoveSelectedTo(targetType, targetColIdx) {
         let target = foundations[targetColIdx];
         let topCard = target[target.length - 1];
         if ((!topCard && card.value === 1) || (topCard && topCard.suit === card.suit && topCard.value === card.value - 1)) {
-            saveState(); target.push(removeSourceCard(srcType, srcCol, srcIdx)[0]);
+            saveState(); stockCycleWithoutProgress = 0;
+            target.push(removeSourceCard(srcType, srcCol, srcIdx)[0]);
             score += 10; clearSelection(); render(); return true;
         }
     }
@@ -588,7 +622,7 @@ function tryMoveSelectedTo(targetType, targetColIdx) {
         let targetCol = tableau[targetColIdx];
         let topCard = targetCol[targetCol.length - 1];
         if ((!topCard && card.value === 13) || (topCard && topCard.color !== card.color && topCard.value === card.value + 1)) {
-            saveState();
+            saveState(); stockCycleWithoutProgress = 0;
             tableau[targetColIdx] = tableau[targetColIdx].concat(removeSourceCard(srcType, srcCol, srcIdx));
             score += 5; clearSelection(); render(); return true;
         }
@@ -602,7 +636,8 @@ function autoMove(card, srcType, colIdx, cardIdx) {
     for (let f = 0; f < 4; f++) {
         let target = foundations[f]; let topCard = target[target.length - 1];
         if ((!topCard && card.value === 1) || (topCard && topCard.suit === card.suit && topCard.value === card.value - 1)) {
-            saveState(); target.push(removeSourceCard(srcType, colIdx, cardIdx)[0]);
+            saveState(); stockCycleWithoutProgress = 0;
+            target.push(removeSourceCard(srcType, colIdx, cardIdx)[0]);
             score += 10; render(); return;
         }
     }
@@ -610,7 +645,7 @@ function autoMove(card, srcType, colIdx, cardIdx) {
         if (srcType === 'tableau' && t === colIdx) continue;
         let targetCol = tableau[t]; let topCard = targetCol[targetCol.length - 1];
         if ((!topCard && card.value === 13) || (topCard && topCard.color !== card.color && topCard.value === card.value + 1)) {
-            saveState();
+            saveState(); stockCycleWithoutProgress = 0;
             tableau[t] = tableau[t].concat(removeSourceCard(srcType, colIdx, cardIdx));
             score += 5; render(); return;
         }
@@ -624,7 +659,8 @@ function checkDrop(card, srcType, srcCol, srcIdx, mouseX, mouseY) {
             if (mouseX >= leftF - 20 && mouseX <= leftF + cardW + 20 && mouseY >= gap - 20 && mouseY <= gap + cardH + 20) {
                 let target = foundations[f]; let topCard = target[target.length - 1];
                 if ((!topCard && card.value === 1) || (topCard && topCard.suit === card.suit && topCard.value === card.value - 1)) {
-                    saveState(); target.push(removeSourceCard(srcType, srcCol, srcIdx)[0]);
+                    saveState(); stockCycleWithoutProgress = 0;
+                    target.push(removeSourceCard(srcType, srcCol, srcIdx)[0]);
                     score += 10; return true;
                 }
             }
@@ -635,7 +671,7 @@ function checkDrop(card, srcType, srcCol, srcIdx, mouseX, mouseY) {
         let targetCol = tableau[t]; let topCard = targetCol[targetCol.length - 1];
         if (mouseX >= leftT - 15 && mouseX <= leftT + cardW + 15) {
             if ((!topCard && card.value === 13) || (topCard && topCard.color !== card.color && topCard.value === card.value + 1)) {
-                saveState();
+                saveState(); stockCycleWithoutProgress = 0;
                 tableau[t] = tableau[t].concat(removeSourceCard(srcType, srcCol, srcIdx));
                 score += 5; return true;
             }
@@ -655,7 +691,7 @@ function removeSourceCard(type, col, idx) {
     return Array.isArray(cards) ? cards : [cards];
 }
 
-/* 개선된 유효 이동 검색 (카드 묶음 정보 및 정확한 목표 지점 포함) */
+/* 무의미한 반복을 차단한 계산형 힌트 로직 */
 function getAvailableMove() {
     // 1. 버림패(Waste)에서 이동
     if (waste.length > 0) {
@@ -675,16 +711,13 @@ function getAvailableMove() {
         }
     }
 
-    // 2. 바닥 카드(Tableau) 간 이동 (앞면 카드만 검사)
+    // 2. 바닥 카드(Tableau) 간 이동 (실질적 진전이 없는 무의미한 핑퐁 이동 제외)
     for (let t = 0; t < 7; t++) {
         if (tableau[t].length === 0) continue;
         for (let j = 0; j < tableau[t].length; j++) {
             let card = tableau[t][j];
-            
-            // 뒤집혀 있는 카드는 힌트 대상에서 절대 제외
             if (!card.faceUp) continue;
 
-            // 맨 위에 있는 단일 카드의 재단(Foundation) 이동
             if (j === tableau[t].length - 1) {
                 for (let f = 0; f < 4; f++) {
                     let topCard = foundations[f][foundations[f].length - 1];
@@ -694,45 +727,33 @@ function getAvailableMove() {
                 }
             }
 
-            // 카드 묶음(예: 7-6-5)의 타블로 간 이동
             for (let t2 = 0; t2 < 7; t2++) {
                 if (t === t2) continue;
                 let topCard = tableau[t2][tableau[t2].length - 1];
+
+                // 유효한 이동 조건
                 if ((!topCard && card.value === 13 && j > 0) || (topCard && topCard.color !== card.color && topCard.value === card.value + 1)) {
-                    let targetY = startY + tableau[t2].length * cardSpacing;
-                    return { card: card, srcType: 'tableau', colIdx: t, cardIdx: j, targetX: offsetX + (cardW + gap) * t2, targetY: targetY, targetSlotId: `slot_t_${t2}` };
+                    // 무의미한 이동 제거: 뒤집힌 카드를 공개할 수 없는 이동이거나 빈 열 간 단순 K 이동 차단
+                    let revealsNewCard = (j > 0 && !tableau[t][j - 1].faceUp);
+                    let clearsColumn = (j === 0);
+                    
+                    if (revealsNewCard || clearsColumn || topCard) {
+                        let targetY = startY + tableau[t2].length * cardSpacing;
+                        return { card: card, srcType: 'tableau', colIdx: t, cardIdx: j, targetX: offsetX + (cardW + gap) * t2, targetY: targetY, targetSlotId: `slot_t_${t2}` };
+                    }
                 }
             }
         }
     }
 
-    // 3. 스톡(Stock) 카드 이동 안내
-    if (stock.length > 0 || waste.length > 0) {
-        let allStockCards = [...stock, ...waste.slice().reverse()];
-        for (let i = 0; i < allStockCards.length; i++) {
-            let sCard = allStockCards[i];
-            let canMove = false;
-            for (let f = 0; f < 4; f++) {
-                let topCard = foundations[f][foundations[f].length - 1];
-                if ((!topCard && sCard.value === 1) || (topCard && topCard.suit === sCard.suit && topCard.value === sCard.value - 1)) { canMove = true; break; }
-            }
-            if (!canMove) {
-                for (let t = 0; t < 7; t++) {
-                    let topCard = tableau[t][tableau[t].length - 1];
-                    if ((!topCard && sCard.value === 13) || (topCard && topCard.color !== sCard.color && topCard.value === sCard.value + 1)) { canMove = true; break; }
-                }
-            }
-            if (canMove) {
-                let targetCard = stock.length > 0 ? stock[stock.length - 1] : waste[waste.length - 1];
-                return { card: targetCard, srcType: 'stock', targetX: offsetX + cardW + gap, targetY: gap, targetSlotId: 'slot_waste' };
-            }
-        }
+    // 3. 스톡(Stock) 넘기기 안내
+    if (stock.length > 0) {
+        return { card: stock[stock.length - 1], srcType: 'stock', targetX: offsetX, targetY: gap, targetSlotId: 'slot_stock' };
     }
 
     return null;
 }
 
-/* 카드 묶음 전체가 같이 움직이는 애니메이션 힌트 */
 function showHint() {
     clearSelection();
     if (isGameWon || isGameOver) return;
@@ -741,7 +762,6 @@ function showHint() {
     if (move && move.card) {
         let cardsToAnimate = [];
 
-        // 타블로(Tableau) 묶음 이동일 경우 하위 카드까지 모두 수집
         if (move.srcType === 'tableau' && move.colIdx !== undefined) {
             for (let k = move.cardIdx; k < tableau[move.colIdx].length; k++) {
                 let childCard = tableau[move.colIdx][k];
@@ -755,13 +775,11 @@ function showHint() {
             if (el) el.classList.add('highlight');
         }
 
-        // 정확한 목적지 슬롯만 초록색 발광
         if (move.targetSlotId) {
             let slotEl = document.getElementById(move.targetSlotId);
             if (slotEl) slotEl.classList.add('hint-target');
         }
 
-        // 카드 묶음 전체 애니메이션 생성 및 실행
         if (cardsToAnimate.length > 0 && move.targetX !== undefined && move.targetY !== undefined) {
             const board = document.getElementById('game-board');
             let ghosts = [];
@@ -784,7 +802,6 @@ function showHint() {
                 ghosts.push({ el: ghost, targetY: move.targetY + (index * cardSpacing) });
             });
 
-            // 묶음 전체가 함께 이동
             setTimeout(() => {
                 ghosts.forEach(g => {
                     g.el.style.left = move.targetX + 'px';
@@ -792,7 +809,6 @@ function showHint() {
                 });
             }, 50);
 
-            // 애니메이션 종료 후 잔상 카드 삭제
             setTimeout(() => {
                 ghosts.forEach(g => { if (g.el) g.el.remove(); });
             }, 900);
@@ -805,6 +821,7 @@ function showHint() {
 function checkNoMovesCondition() {
     if (isGameWon || isGameOver) return;
 
+    // 더 이상 남은 유효 이동이 없는지 확인
     let move = getAvailableMove();
     if (!move) {
         triggerFailScreen();
@@ -915,7 +932,7 @@ function checkWinCondition() {
 }
 
 window.onresize = resizeBoard;
-window.onload = () => { setTimeout(initGame, 100); };
+window.onload = () => { showStartMenu(); };
 </script>
 </body>
 </html>
