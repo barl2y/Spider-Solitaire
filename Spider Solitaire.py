@@ -67,17 +67,6 @@ klondike_full_html = """
         100% { filter: drop-shadow(0 0 25px rgba(255, 105, 180, 0.9)); opacity: 0.9; }
     }
 
-    .ground-lantern { position: absolute; bottom: 50px; pointer-events: none; z-index: 5; }
-    .lantern-left { left: 25px; width: 140px; height: 220px; }
-    .lantern-right { right: 25px; width: 140px; height: 220px; transform: scaleX(-1); }
-
-    .stone-glow { animation: stoneLanternPulse 2.1s ease-in-out infinite alternate; transform-origin: center; }
-    @keyframes stoneLanternPulse {
-        0% { filter: drop-shadow(0 0 6px rgba(255, 150, 40, 0.5)) drop-shadow(0 0 15px rgba(255, 100, 0, 0.3)); opacity: 0.75; }
-        50% { filter: drop-shadow(0 0 18px rgba(255, 170, 50, 0.85)) drop-shadow(0 0 30px rgba(255, 120, 0, 0.6)); opacity: 1; }
-        100% { filter: drop-shadow(0 0 28px rgba(255, 190, 60, 1)) drop-shadow(0 0 45px rgba(255, 90, 0, 0.8)); opacity: 0.9; }
-    }
-
     .bg-torii {
         position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
         width: 360px; opacity: 0.12; pointer-events: none; z-index: 1;
@@ -117,7 +106,6 @@ klondike_full_html = """
         padding: 6px 22px; border: 2px solid #fff8dc; border-radius: 4px;
         box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); cursor: pointer; transition: all 0.2s;
     }
-    #auto-btn:hover { transform: translateX(-50%) scale(1.05); background: #fff8dc; }
 
     .card {
         position: absolute; border-radius: 6px; background-color: #f3ebdd;
@@ -142,23 +130,6 @@ klondike_full_html = """
         z-index: 9999 !important;
     }
 
-    .card.highlight { 
-        animation: greenHintPulse 0.8s infinite alternate; 
-        border: 2px solid #2ecc71 !important; 
-    }
-    @keyframes greenHintPulse {
-        0% { transform: scale(1); box-shadow: 0 0 6px #2ecc71, inset 0 0 4px #2ecc71; }
-        100% { transform: scale(1.06); box-shadow: 0 0 22px #00ff88, 0 0 12px #2ecc71; }
-    }
-
-    .hint-ghost-card {
-        position: absolute; pointer-events: none; border-radius: 6px;
-        border: 2px solid #00ff88 !important;
-        box-shadow: 0 0 25px #00ff88, inset 0 0 10px #00ff88 !important;
-        z-index: 9000 !important; opacity: 0.85;
-        transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1);
-    }
-
     .card.back {
         background: #141f2c; border: 1px solid #d4af37;
         background-image: url("data:image/svg+xml,%3Csvg width='24' height='41.569' viewBox='0 0 24 41.569' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 0L0 6.928v13.856L12 27.713l12-6.929V6.928L12 0zm0 2.309l9.6 5.543v11.085L12 24.48 2.4 18.937V7.852L12 2.31zM12 27.713L0 34.641v6.928h24v-6.928l-12-6.928z' fill='%23d4af37' fill-opacity='0.3'/%3E%3C/svg%3E");
@@ -174,17 +145,10 @@ klondike_full_html = """
         border: 1px dashed rgba(212, 175, 55, 0.4); background: rgba(20, 20, 25, 0.5);
         display: flex; align-items: center; justify-content: center;
         color: rgba(212, 175, 55, 0.4); font-size: 0.85rem;
-        transition: border-color 0.3s, box-shadow 0.3s;
-    }
-
-    .card-slot.hint-target {
-        border-color: #00ff88 !important;
-        box-shadow: 0 0 20px rgba(0, 255, 136, 0.6), inset 0 0 10px rgba(0, 255, 136, 0.3) !important;
     }
 
     #fx-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2000; }
 
-    /* 메인 선택 화면 및 모달 모음 */
     .overlay-modal {
         position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
         background: rgba(12, 12, 15, 0.96); border: 2px solid #d4af37;
@@ -252,7 +216,6 @@ klondike_full_html = """
     <canvas id="fx-canvas"></canvas>
 </div>
 
-<!-- 난이도 선택 메인 메뉴 -->
 <div id="start-menu" class="overlay-modal">
     <div class="menu-title">난이도 선택</div>
     <button class="btn diff-btn" onclick="startGame('easy')">🟢 쉬움 (1장 뒤집기)</button>
@@ -265,7 +228,7 @@ klondike_full_html = """
     <button class="btn" onclick="showStartMenu()">메인 메뉴</button>
     <button class="btn" onclick="initGame()">다시 시작</button>
     <button class="btn" onclick="undoMove()">되돌리기</button>
-    <button class="btn" onclick="showHint()">힌트 (Hint)</button>
+    <button class="btn" onclick="checkOrTriggerFail()">패배 확인 (Check Fail)</button>
 </div>
 
 <div id="win-modal" class="overlay-modal">
@@ -279,7 +242,7 @@ klondike_full_html = """
 
 <div id="fail-modal" class="overlay-modal">
     <h2>NO MORE MOVES</h2>
-    <p>더 이상 유효한 이동이 없습니다!</p>
+    <p>더 이상 진행 가능한 수순이 없습니다!</p>
     <hr style="border:0; border-top:1px solid rgba(255,0,85,0.3); margin: 12px 0;">
     <p>최종 점수: <span id="fail-score" style="color:#ff0055; font-weight:bold;">0</span>점</p>
     <button class="btn btn-fail" onclick="showStartMenu()">메인으로 돌아가기</button>
@@ -298,7 +261,6 @@ let selectedInfo = null;
 
 let currentDifficulty = 'normal';
 let drawCount = 3;
-let stockCycleWithoutProgress = 0;
 let isCustomMode = false;
 
 function showStartMenu() {
@@ -334,8 +296,7 @@ function enableCustomPlacementMode() {
 
 function clearSelection() {
     selectedInfo = null;
-    document.querySelectorAll('.card').forEach(c => c.classList.remove('selected', 'highlight'));
-    document.querySelectorAll('.card-slot').forEach(s => s.classList.remove('hint-target'));
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
 }
 
 function updateSelectedUI() {
@@ -376,7 +337,6 @@ function initGame() {
     document.getElementById('auto-btn').style.display = 'none';
     isGameWon = false;
     isGameOver = false;
-    stockCycleWithoutProgress = 0;
     clearSelection();
 
     let deck = [], idCounter = 0;
@@ -440,14 +400,14 @@ function render() {
     document.getElementById('score').innerText = score;
 
     let leftStock = offsetX;
-    createSlot(leftStock, gap, '空', () => handleStockClick(), 'slot_stock');
+    createSlot(leftStock, gap, '空', () => handleStockClick());
     if (stock.length > 0) {
         let c = createCardEl(stock[stock.length - 1], leftStock, gap, false);
         c.onclick = (e) => { e.stopPropagation(); handleStockClick(); };
     }
 
     let leftWaste = offsetX + cardW + gap;
-    createSlot(leftWaste, gap, '捨', () => tryMoveSelectedTo('waste', 0), 'slot_waste');
+    createSlot(leftWaste, gap, '捨', () => tryMoveSelectedTo('waste', 0));
     if (waste.length > 0) {
         let card = waste[waste.length - 1];
         let c = createCardEl(card, leftWaste, gap, true);
@@ -456,7 +416,7 @@ function render() {
 
     for (let i = 0; i < 4; i++) {
         let leftF = offsetX + (cardW + gap) * (3 + i);
-        createSlot(leftF, gap, '組', () => tryMoveSelectedTo('foundation', i), `slot_f_${i}`);
+        createSlot(leftF, gap, '組', () => tryMoveSelectedTo('foundation', i));
         if (foundations[i].length > 0) {
             let card = foundations[i][foundations[i].length - 1];
             let c = createCardEl(card, leftF, gap, true);
@@ -466,7 +426,7 @@ function render() {
 
     for (let i = 0; i < 7; i++) {
         let leftT = offsetX + (cardW + gap) * i;
-        createSlot(leftT, startY, '場', () => tryMoveSelectedTo('tableau', i), `slot_t_${i}`);
+        createSlot(leftT, startY, '場', () => tryMoveSelectedTo('tableau', i));
         
         for (let j = 0; j < tableau[i].length; j++) {
             let card = tableau[i][j];
@@ -479,13 +439,11 @@ function render() {
     updateSelectedUI();
     checkAutoCompleteCondition();
     checkWinCondition();
-    checkNoMovesCondition();
 }
 
-function createSlot(x, y, label, onClick, id) {
+function createSlot(x, y, label, onClick) {
     const board = document.getElementById('game-board');
     const slot = document.createElement('div');
-    if (id) slot.id = id;
     slot.className = 'card-slot';
     slot.style.width = cardW + 'px'; slot.style.height = cardH + 'px';
     slot.style.left = x + 'px'; slot.style.top = y + 'px';
@@ -521,11 +479,6 @@ function handleStockClick() {
     saveState();
 
     if (stock.length === 0) {
-        stockCycleWithoutProgress++;
-        if (currentDifficulty === 'hard' && stockCycleWithoutProgress >= 2) {
-            triggerFailScreen();
-            return;
-        }
         stock = waste.reverse().map(c => ({...c, faceUp: false}));
         waste = [];
     } else {
@@ -611,7 +564,7 @@ function tryMoveSelectedTo(targetType, targetColIdx) {
         let target = foundations[targetColIdx];
         let topCard = target[target.length - 1];
         if ((!topCard && card.value === 1) || (topCard && topCard.suit === card.suit && topCard.value === card.value - 1)) {
-            saveState(); stockCycleWithoutProgress = 0;
+            saveState();
             target.push(removeSourceCard(srcType, srcCol, srcIdx)[0]);
             score += 10; clearSelection(); render(); return true;
         }
@@ -622,7 +575,7 @@ function tryMoveSelectedTo(targetType, targetColIdx) {
         let targetCol = tableau[targetColIdx];
         let topCard = targetCol[targetCol.length - 1];
         if ((!topCard && card.value === 13) || (topCard && topCard.color !== card.color && topCard.value === card.value + 1)) {
-            saveState(); stockCycleWithoutProgress = 0;
+            saveState();
             tableau[targetColIdx] = tableau[targetColIdx].concat(removeSourceCard(srcType, srcCol, srcIdx));
             score += 5; clearSelection(); render(); return true;
         }
@@ -636,7 +589,7 @@ function autoMove(card, srcType, colIdx, cardIdx) {
     for (let f = 0; f < 4; f++) {
         let target = foundations[f]; let topCard = target[target.length - 1];
         if ((!topCard && card.value === 1) || (topCard && topCard.suit === card.suit && topCard.value === card.value - 1)) {
-            saveState(); stockCycleWithoutProgress = 0;
+            saveState();
             target.push(removeSourceCard(srcType, colIdx, cardIdx)[0]);
             score += 10; render(); return;
         }
@@ -645,7 +598,7 @@ function autoMove(card, srcType, colIdx, cardIdx) {
         if (srcType === 'tableau' && t === colIdx) continue;
         let targetCol = tableau[t]; let topCard = targetCol[targetCol.length - 1];
         if ((!topCard && card.value === 13) || (topCard && topCard.color !== card.color && topCard.value === card.value + 1)) {
-            saveState(); stockCycleWithoutProgress = 0;
+            saveState();
             tableau[t] = tableau[t].concat(removeSourceCard(srcType, colIdx, cardIdx));
             score += 5; render(); return;
         }
@@ -659,7 +612,7 @@ function checkDrop(card, srcType, srcCol, srcIdx, mouseX, mouseY) {
             if (mouseX >= leftF - 20 && mouseX <= leftF + cardW + 20 && mouseY >= gap - 20 && mouseY <= gap + cardH + 20) {
                 let target = foundations[f]; let topCard = target[target.length - 1];
                 if ((!topCard && card.value === 1) || (topCard && topCard.suit === card.suit && topCard.value === card.value - 1)) {
-                    saveState(); stockCycleWithoutProgress = 0;
+                    saveState();
                     target.push(removeSourceCard(srcType, srcCol, srcIdx)[0]);
                     score += 10; return true;
                 }
@@ -671,7 +624,7 @@ function checkDrop(card, srcType, srcCol, srcIdx, mouseX, mouseY) {
         let targetCol = tableau[t]; let topCard = targetCol[targetCol.length - 1];
         if (mouseX >= leftT - 15 && mouseX <= leftT + cardW + 15) {
             if ((!topCard && card.value === 13) || (topCard && topCard.color !== card.color && topCard.value === card.value + 1)) {
-                saveState(); stockCycleWithoutProgress = 0;
+                saveState();
                 tableau[t] = tableau[t].concat(removeSourceCard(srcType, srcCol, srcIdx));
                 score += 5; return true;
             }
@@ -691,27 +644,34 @@ function removeSourceCard(type, col, idx) {
     return Array.isArray(cards) ? cards : [cards];
 }
 
-/* 무의미한 반복을 차단한 계산형 힌트 로직 */
-function getAvailableMove() {
-    // 1. 버림패(Waste)에서 이동
+/* 수순 계산 후 진행 불가능 시 즉시 패배 처리 */
+function checkOrTriggerFail() {
+    clearSelection();
+    if (isGameWon || isGameOver) return;
+
+    let hasValidMove = checkHasValidMove();
+    if (!hasValidMove) {
+        triggerFailScreen();
+    } else {
+        alert("아직 진행할 수 있는 유효한 수순이 남아있습니다!");
+    }
+}
+
+function checkHasValidMove() {
+    // 1. 버림패(Waste)에서 이동 가능 여부
     if (waste.length > 0) {
         let wCard = waste[waste.length - 1];
         for (let f = 0; f < 4; f++) {
             let topCard = foundations[f][foundations[f].length - 1];
-            if ((!topCard && wCard.value === 1) || (topCard && topCard.suit === wCard.suit && topCard.value === wCard.value - 1)) {
-                return { card: wCard, srcType: 'waste', targetX: offsetX + (cardW + gap) * (3 + f), targetY: gap, targetSlotId: `slot_f_${f}` };
-            }
+            if ((!topCard && wCard.value === 1) || (topCard && topCard.suit === wCard.suit && topCard.value === wCard.value - 1)) return true;
         }
         for (let t = 0; t < 7; t++) {
             let topCard = tableau[t][tableau[t].length - 1];
-            if ((!topCard && wCard.value === 13) || (topCard && topCard.color !== wCard.color && topCard.value === wCard.value + 1)) {
-                let targetY = startY + tableau[t].length * cardSpacing;
-                return { card: wCard, srcType: 'waste', targetX: offsetX + (cardW + gap) * t, targetY: targetY, targetSlotId: `slot_t_${t}` };
-            }
+            if ((!topCard && wCard.value === 13) || (topCard && topCard.color !== wCard.color && topCard.value === wCard.value + 1)) return true;
         }
     }
 
-    // 2. 바닥 카드(Tableau) 간 이동 (실질적 진전이 없는 무의미한 핑퐁 이동 제외)
+    // 2. 바닥 카드(Tableau) 간 유효한 전진 이동 여부 (의미 없는 단순 교대 이동 제외)
     for (let t = 0; t < 7; t++) {
         if (tableau[t].length === 0) continue;
         for (let j = 0; j < tableau[t].length; j++) {
@@ -721,111 +681,25 @@ function getAvailableMove() {
             if (j === tableau[t].length - 1) {
                 for (let f = 0; f < 4; f++) {
                     let topCard = foundations[f][foundations[f].length - 1];
-                    if ((!topCard && card.value === 1) || (topCard && card.suit === topCard.suit && topCard.value === topCard.value - 1)) {
-                        return { card: card, srcType: 'tableau', colIdx: t, cardIdx: j, targetX: offsetX + (cardW + gap) * (3 + f), targetY: gap, targetSlotId: `slot_f_${f}` };
-                    }
+                    if ((!topCard && card.value === 1) || (topCard && card.suit === topCard.suit && topCard.value === topCard.value - 1)) return true;
                 }
             }
 
             for (let t2 = 0; t2 < 7; t2++) {
                 if (t === t2) continue;
                 let topCard = tableau[t2][tableau[t2].length - 1];
-
-                // 유효한 이동 조건
                 if ((!topCard && card.value === 13 && j > 0) || (topCard && topCard.color !== card.color && topCard.value === card.value + 1)) {
-                    // 무의미한 이동 제거: 뒤집힌 카드를 공개할 수 없는 이동이거나 빈 열 간 단순 K 이동 차단
                     let revealsNewCard = (j > 0 && !tableau[t][j - 1].faceUp);
-                    let clearsColumn = (j === 0);
-                    
-                    if (revealsNewCard || clearsColumn || topCard) {
-                        let targetY = startY + tableau[t2].length * cardSpacing;
-                        return { card: card, srcType: 'tableau', colIdx: t, cardIdx: j, targetX: offsetX + (cardW + gap) * t2, targetY: targetY, targetSlotId: `slot_t_${t2}` };
-                    }
+                    if (revealsNewCard || topCard) return true;
                 }
             }
         }
     }
 
-    // 3. 스톡(Stock) 넘기기 안내
-    if (stock.length > 0) {
-        return { card: stock[stock.length - 1], srcType: 'stock', targetX: offsetX, targetY: gap, targetSlotId: 'slot_stock' };
-    }
+    // 3. 스톡(Stock) 카드 존재 여부
+    if (stock.length > 0) return true;
 
-    return null;
-}
-
-function showHint() {
-    clearSelection();
-    if (isGameWon || isGameOver) return;
-
-    let move = getAvailableMove();
-    if (move && move.card) {
-        let cardsToAnimate = [];
-
-        if (move.srcType === 'tableau' && move.colIdx !== undefined) {
-            for (let k = move.cardIdx; k < tableau[move.colIdx].length; k++) {
-                let childCard = tableau[move.colIdx][k];
-                cardsToAnimate.push(childCard);
-                let el = document.getElementById(childCard.uid);
-                if (el) el.classList.add('highlight');
-            }
-        } else {
-            cardsToAnimate.push(move.card);
-            let el = document.getElementById(move.card.uid);
-            if (el) el.classList.add('highlight');
-        }
-
-        if (move.targetSlotId) {
-            let slotEl = document.getElementById(move.targetSlotId);
-            if (slotEl) slotEl.classList.add('hint-target');
-        }
-
-        if (cardsToAnimate.length > 0 && move.targetX !== undefined && move.targetY !== undefined) {
-            const board = document.getElementById('game-board');
-            let ghosts = [];
-
-            cardsToAnimate.forEach((c, index) => {
-                let origEl = document.getElementById(c.uid);
-                if (!origEl) return;
-
-                let ghost = origEl.cloneNode(true);
-                ghost.id = `hint_ghost_${index}`;
-                ghost.classList.remove('highlight', 'selected');
-                ghost.classList.add('hint-ghost-card');
-
-                let startX = parseFloat(origEl.style.left);
-                let startY = parseFloat(origEl.style.top);
-                ghost.style.left = startX + 'px';
-                ghost.style.top = startY + 'px';
-
-                board.appendChild(ghost);
-                ghosts.push({ el: ghost, targetY: move.targetY + (index * cardSpacing) });
-            });
-
-            setTimeout(() => {
-                ghosts.forEach(g => {
-                    g.el.style.left = move.targetX + 'px';
-                    g.el.style.top = g.targetY + 'px';
-                });
-            }, 50);
-
-            setTimeout(() => {
-                ghosts.forEach(g => { if (g.el) g.el.remove(); });
-            }, 900);
-        }
-    } else {
-        triggerFailScreen();
-    }
-}
-
-function checkNoMovesCondition() {
-    if (isGameWon || isGameOver) return;
-
-    // 더 이상 남은 유효 이동이 없는지 확인
-    let move = getAvailableMove();
-    if (!move) {
-        triggerFailScreen();
-    }
+    return false;
 }
 
 function triggerFailScreen() {
@@ -836,7 +710,7 @@ function triggerFailScreen() {
     setTimeout(() => {
         document.getElementById('fail-score').innerText = score;
         document.getElementById('fail-modal').style.display = 'block';
-    }, 600);
+    }, 500);
 }
 
 function launchCrimsonShatterImpact() {
