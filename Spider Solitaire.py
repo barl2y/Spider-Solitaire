@@ -215,7 +215,7 @@ klondike_full_html = """
 
 <div id="top-bar">
     <div class="jp-title">クロンダイク — Klondike Solitaire</div>
-    <div class="jp-stats">난이도: <span id="diff-label">보통</span> &nbsp;|&nbsp; 힌트: <span id="hint-count-label">10</span> &nbsp;|&nbsp; 점수: <span id="score">0</span> &nbsp;|&nbsp; 시간: <span id="timer">00:00</span></div>
+    <div class="jp-stats">난이도: <span id="diff-label">보통</span> &nbsp;|&nbsp; 힌트: <span id="hint-count-label">10</span> &nbsp;|&nbsp; 점수: <span id="score">0</span> &nbsp;|&nbsp; 미이동 시간: <span id="idle-timer">대기중</span></div>
 </div>
 
 <div id="game-board">
@@ -225,10 +225,9 @@ klondike_full_html = """
 
 <div id="start-menu" class="overlay-modal">
     <div class="menu-title">난이도 선택</div>
-    <button class="btn diff-btn" onclick="startGame('easy')">🟢 쉬움 (힌트 무제한 / 1장)</button>
-    <button class="btn diff-btn" onclick="startGame('normal')">🟡 보통 (힌트 10회 / 3장)</button>
-    <button class="btn diff-btn" onclick="startGame('hard')">🔴 어려움 (힌트 3회 / 3장)</button>
-    <button class="btn diff-btn" style="border-color:#00ff88; color:#00ff88;" onclick="enableCustomPlacementMode()">🛠️ 카드 직접 배치 모드 (무제한)</button>
+    <button class="btn diff-btn" onclick="startGame('easy')">🟢 쉬움 (힌트 무제한 / 시간 제한 없음)</button>
+    <button class="btn diff-btn" onclick="startGame('normal')">🟡 보통 (힌트 10회 / 15초 제한)</button>
+    <button class="btn diff-btn" onclick="startGame('hard')">🔴 어려움 (힌트 3회 / 30초 제한)</button>
 </div>
 
 <div id="bottom-bar">
@@ -236,7 +235,7 @@ klondike_full_html = """
     <button class="btn" onclick="initGame()">다시 시작</button>
     <button class="btn" onclick="undoMove()">되돌리기</button>
     <button class="btn" onclick="useHint()">힌트</button>
-    <button class="btn" style="border-color:#ff0055; color:#ff7799;" onclick="triggerFailScreen()">항복 (Surrender)</button>
+    <button class="btn" style="border-color:#ff0055; color:#ff7799;" onclick="triggerFailScreen('항복 하셨습니다!')">항복 (Surrender)</button>
 </div>
 
 <div id="win-modal" class="overlay-modal">
@@ -244,13 +243,12 @@ klondike_full_html = """
     <p>축하합니다! 게임을 완성하셨습니다.</p>
     <hr style="border:0; border-top:1px solid rgba(212,175,55,0.3); margin: 12px 0;">
     <p>최종 점수: <span id="final-score" style="color:#d4af37; font-weight:bold;">0</span>점</p>
-    <p>소요 시간: <span id="final-time" style="color:#d4af37; font-weight:bold;">00:00</span></p>
     <button class="btn" style="margin-top:15px;" onclick="showStartMenu()">메인으로 돌아가기</button>
 </div>
 
 <div id="fail-modal" class="overlay-modal">
-    <h2>NO MORE MOVES</h2>
-    <p>더 이상 진행할 수 있는 수순이 없습니다!</p>
+    <h2 id="fail-title">NO MORE MOVES</h2>
+    <p id="fail-msg">더 이상 진행할 수 있는 수순이 없습니다!</p>
     <hr style="border:0; border-top:1px solid rgba(255,0,85,0.3); margin: 12px 0;">
     <p>최종 점수: <span id="fail-score" style="color:#ff0055; font-weight:bold;">0</span>점</p>
     <button class="btn btn-fail" onclick="showStartMenu()">메인으로 돌아가기</button>
@@ -264,16 +262,20 @@ let stock = [], waste = [], foundations = [[], [], [], []], tableau = [[], [], [
 let history = [];
 let dragGroup = [], isDragging = false, dragStartX = 0, dragStartY = 0;
 let cardW = 0, cardH = 0, gap = 0, startY = 0, offsetX = 0, cardSpacing = 0;
-let timeSeconds = 0, timerInterval = null, score = 0, isGameWon = false, isGameOver = false;
+let score = 0, isGameWon = false, isGameOver = false;
 let selectedInfo = null;
 
 let currentDifficulty = 'normal';
 let drawCount = 3;
-let isCustomMode = false;
 let remainingHints = 10;
 
+// 방치 타이머 관련 변수
+let idleSeconds = 0;        // 카드를 안 움직이고 경과한 총 시간(초)
+let maxIdleLimit = 15;      // 제한 시간 (보통: 15, 어려움: 30, 쉬움: Infinity)
+let idleTimerInterval = null;
+
 function showStartMenu() {
-    clearInterval(timerInterval);
+    clearInterval(idleTimerInterval);
     document.getElementById('start-menu').style.display = 'flex';
     document.getElementById('win-modal').style.display = 'none';
     document.getElementById('fail-modal').style.display = 'none';
@@ -281,30 +283,64 @@ function showStartMenu() {
 
 function startGame(diff) {
     currentDifficulty = diff;
-    isCustomMode = false;
     if (diff === 'easy') {
         drawCount = 1;
         remainingHints = Infinity;
+        maxIdleLimit = Infinity;
         document.getElementById('diff-label').innerText = '쉬움';
     } else if (diff === 'normal') {
         drawCount = 3;
         remainingHints = 10;
+        maxIdleLimit = 15;
         document.getElementById('diff-label').innerText = '보통';
     } else {
         drawCount = 3;
         remainingHints = 3;
+        maxIdleLimit = 30;
         document.getElementById('diff-label').innerText = '어려움';
     }
     document.getElementById('start-menu').style.display = 'none';
     initGame();
 }
 
-function enableCustomPlacementMode() {
-    isCustomMode = true;
-    remainingHints = Infinity;
-    document.getElementById('diff-label').innerText = '배치 모드';
-    document.getElementById('start-menu').style.display = 'none';
-    initGame();
+function resetIdleTimer() {
+    idleSeconds = 0;
+    updateTimerDisplay();
+}
+
+function updateTimerDisplay() {
+    let timerEl = document.getElementById('idle-timer');
+    if (maxIdleLimit === Infinity) {
+        timerEl.innerText = '무제한';
+        return;
+    }
+
+    if (idleSeconds < 3) {
+        timerEl.innerText = '0초';
+    } else {
+        let activeSeconds = idleSeconds - 3;
+        timerEl.innerText = `${activeSeconds}초 / ${maxIdleLimit}초`;
+    }
+}
+
+function startIdleTimerSystem() {
+    clearInterval(idleTimerInterval);
+    idleSeconds = 0;
+    updateTimerDisplay();
+
+    idleTimerInterval = setInterval(() => {
+        if (!isGameWon && !isGameOver) {
+            idleSeconds++;
+            updateTimerDisplay();
+
+            if (maxIdleLimit !== Infinity) {
+                let activeSeconds = idleSeconds - 3;
+                if (activeSeconds >= maxIdleLimit) {
+                    triggerFailScreen("TIME OVER", "생각 시간이 초과되었습니다!");
+                }
+            }
+        }
+    }, 1000);
 }
 
 function updateHintLabel() {
@@ -367,14 +403,12 @@ function initGame() {
         for (let v = 1; v <= 13; v++) {
             deck.push({
                 suit: SUITS[s], color: (s === 1 || s === 2) ? 'red' : 'black',
-                value: v, name: VALUES[v-1], faceUp: isCustomMode, uid: 'card_' + (idCounter++)
+                value: v, name: VALUES[v-1], faceUp: false, uid: 'card_' + (idCounter++)
             });
         }
     }
 
-    if (!isCustomMode) {
-        deck.sort(() => Math.random() - 0.5);
-    }
+    deck.sort(() => Math.random() - 0.5);
 
     tableau = [[], [], [], [], [], [], []]; foundations = [[], [], [], []];
     waste = []; history = []; score = 0;
@@ -382,23 +416,13 @@ function initGame() {
     for (let i = 0; i < 7; i++) {
         for (let j = 0; j <= i; j++) {
             let card = deck.pop();
-            if (j === i || isCustomMode) card.faceUp = true;
+            if (j === i) card.faceUp = true;
             tableau[i].push(card);
         }
     }
     stock = deck;
 
-    clearInterval(timerInterval);
-    timeSeconds = 0;
-    timerInterval = setInterval(() => {
-        if (!isGameWon && !isGameOver) {
-            timeSeconds++;
-            let m = String(Math.floor(timeSeconds / 60)).padStart(2, '0');
-            let s = String(timeSeconds % 60).padStart(2, '0');
-            document.getElementById('timer').innerText = `${m}:${s}`;
-        }
-    }, 1000);
-
+    startIdleTimerSystem();
     resizeBoard();
 }
 
@@ -408,6 +432,7 @@ function saveState() {
 
 function undoMove() {
     if (history.length === 0 || isGameWon || isGameOver) return;
+    resetIdleTimer();
     clearSelection();
     let state = JSON.parse(history.pop());
     stock = state.stock; waste = state.waste;
@@ -499,6 +524,7 @@ function createCardEl(card, x, y, faceUp) {
 
 function handleStockClick() {
     if (isGameWon || isGameOver) return;
+    resetIdleTimer();
     clearSelection();
     saveState();
 
@@ -565,7 +591,7 @@ function bindCardEvents(el, card, srcType, colIdx, cardIdx) {
                 dragGroup.forEach(item => item.el.classList.remove('dragging'));
                 let dropped = checkDrop(card, srcType, colIdx, cardIdx, e.clientX, e.clientY);
                 if (!dropped) dragGroup.forEach(item => { item.el.style.left = item.origX + 'px'; item.el.style.top = item.origY + 'px'; });
-                else { clearSelection(); render(); }
+                else { resetIdleTimer(); clearSelection(); render(); }
                 isDragging = false;
             } else if (!isMoveAction) {
                 if (selectedInfo && selectedInfo.card.uid === card.uid) {
@@ -590,7 +616,7 @@ function tryMoveSelectedTo(targetType, targetColIdx) {
         if ((!topCard && card.value === 1) || (topCard && topCard.suit === card.suit && topCard.value === card.value - 1)) {
             saveState();
             target.push(removeSourceCard(srcType, srcCol, srcIdx)[0]);
-            score += 10; clearSelection(); render(); return true;
+            score += 10; resetIdleTimer(); clearSelection(); render(); return true;
         }
     }
 
@@ -601,7 +627,7 @@ function tryMoveSelectedTo(targetType, targetColIdx) {
         if ((!topCard && card.value === 13) || (topCard && topCard.color !== card.color && topCard.value === card.value + 1)) {
             saveState();
             tableau[targetColIdx] = tableau[targetColIdx].concat(removeSourceCard(srcType, srcCol, srcIdx));
-            score += 5; clearSelection(); render(); return true;
+            score += 5; resetIdleTimer(); clearSelection(); render(); return true;
         }
     }
     clearSelection();
@@ -615,7 +641,7 @@ function autoMove(card, srcType, colIdx, cardIdx) {
         if ((!topCard && card.value === 1) || (topCard && topCard.suit === card.suit && topCard.value === card.value - 1)) {
             saveState();
             target.push(removeSourceCard(srcType, colIdx, cardIdx)[0]);
-            score += 10; render(); return;
+            score += 10; resetIdleTimer(); render(); return;
         }
     }
     for (let t = 0; t < 7; t++) {
@@ -624,7 +650,7 @@ function autoMove(card, srcType, colIdx, cardIdx) {
         if ((!topCard && card.value === 13) || (topCard && topCard.color !== card.color && topCard.value === card.value + 1)) {
             saveState();
             tableau[t] = tableau[t].concat(removeSourceCard(srcType, colIdx, cardIdx));
-            score += 5; render(); return;
+            score += 5; resetIdleTimer(); render(); return;
         }
     }
 }
@@ -668,7 +694,6 @@ function removeSourceCard(type, col, idx) {
     return Array.isArray(cards) ? cards : [cards];
 }
 
-/* 유효 힌트 출력 로직 */
 function useHint() {
     clearSelection();
     if (isGameWon || isGameOver) return;
@@ -691,9 +716,7 @@ function useHint() {
     }
 }
 
-/* 유효 진행 수순 계산 (실질적 전진만 추천) */
 function findValidProgressiveMove() {
-    // 1. 버림패 -> 파운데이션
     if (waste.length > 0) {
         let wCard = waste[waste.length - 1];
         for (let f = 0; f < 4; f++) {
@@ -704,20 +727,18 @@ function findValidProgressiveMove() {
         }
     }
 
-    // 2. 바닥 카드 -> 파운데이션
     for (let t = 0; t < 7; t++) {
         if (tableau[t].length === 0) continue;
         let card = tableau[t][tableau[t].length - 1];
         if (!card.faceUp) continue;
         for (let f = 0; f < 4; f++) {
             let topCard = foundations[f][foundations[f].length - 1];
-            if ((!topCard && card.value === 1) || (topCard && card.suit === topCard.suit && topCard.value === topCard.value - 1)) {
+            if ((!topCard && card.value === 1) || (topCard && card.suit === topCard.suit && topCard.value === card.value - 1)) {
                 return { card: card, target: 'foundation' };
             }
         }
     }
 
-    // 3. 버림패 -> 바닥 카드
     if (waste.length > 0) {
         let wCard = waste[waste.length - 1];
         for (let t = 0; t < 7; t++) {
@@ -728,7 +749,6 @@ function findValidProgressiveMove() {
         }
     }
 
-    // 4. 새로운 뒷면 카드를 열 수 있는 바닥 카드 이동
     for (let t = 0; t < 7; t++) {
         if (tableau[t].length === 0) continue;
         for (let j = 0; j < tableau[t].length; j++) {
@@ -751,36 +771,34 @@ function findValidProgressiveMove() {
     return null;
 }
 
-/* 지능형 자동 패배 검사 */
 function checkAutoLossCondition() {
     if (isGameWon || isGameOver) return;
 
-    // 실질 전진 가능 여부 확인
     let progressiveMove = findValidProgressiveMove();
-    if (progressiveMove) return; // 전진 가능한 수가 남아있음
+    if (progressiveMove) return;
 
-    // 스톡에 카드가 남아있는지 검사
     if (stock.length > 0) return;
 
-    // 스톡도 완전히 비었고, 버림패/바닥패를 통합해도 새로 열 수 있는 뒷면 카드가 없으면 패배
     let hasHiddenCards = tableau.some(col => col.some(c => !c.faceUp));
     if (!hasHiddenCards && waste.length === 0) {
-        // 모든 카드가 공개되었으나 파운데이션 완성이 불가능한 구조적 교착
-        triggerFailScreen();
+        triggerFailScreen("NO MORE MOVES", "더 이상 진행할 수 있는 수순이 없습니다!");
         return;
     }
 
-    // 무한 반복 방지: 더 이상 어떠한 전진 및 수순 변화도 불가능한 상태 판정
     if (waste.length > 0 && !progressiveMove) {
-        triggerFailScreen();
+        triggerFailScreen("NO MORE MOVES", "더 이상 진행할 수 있는 수순이 없습니다!");
     }
 }
 
-function triggerFailScreen() {
+function triggerFailScreen(title = "NO MORE MOVES", msg = "더 이상 진행할 수 있는 수순이 없습니다!") {
     if (isGameOver) return;
     isGameOver = true;
-    clearInterval(timerInterval);
+    clearInterval(idleTimerInterval);
     launchCrimsonShatterImpact();
+    
+    document.getElementById('fail-title').innerText = title;
+    document.getElementById('fail-msg').innerText = msg;
+    
     setTimeout(() => {
         document.getElementById('fail-score').innerText = score;
         document.getElementById('fail-modal').style.display = 'block';
@@ -872,9 +890,8 @@ function checkWinCondition() {
     let win = foundations.every(f => f.length === 13);
     if (win && !isGameWon) {
         isGameWon = true;
-        clearInterval(timerInterval);
+        clearInterval(idleTimerInterval);
         document.getElementById('final-score').innerText = score;
-        document.getElementById('final-time').innerText = document.getElementById('timer').innerText;
         document.getElementById('win-modal').style.display = 'block';
     }
 }
