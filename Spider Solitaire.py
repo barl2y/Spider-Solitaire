@@ -262,16 +262,15 @@ let stock = [], waste = [], foundations = [[], [], [], []], tableau = [[], [], [
 let history = [];
 let dragGroup = [], isDragging = false, dragStartX = 0, dragStartY = 0;
 let cardW = 0, cardH = 0, gap = 0, startY = 0, offsetX = 0, cardSpacing = 0;
-let score = 0, isGameWon = false, isGameOver = false;
+let score = 0, isGameWon = false, isGameOver = false, isAutoCompleting = false;
 let selectedInfo = null;
 
 let currentDifficulty = 'normal';
 let drawCount = 3;
 let remainingHints = 10;
 
-// 방치 타이머 관련 변수
-let idleSeconds = 0;        // 카드를 안 움직이고 경과한 총 시간(초)
-let maxIdleLimit = 15;      // 제한 시간 (보통: 15, 어려움: 30, 쉬움: Infinity)
+let idleSeconds = 0;
+let maxIdleLimit = 15;
 let idleTimerInterval = null;
 
 function showStartMenu() {
@@ -329,7 +328,7 @@ function startIdleTimerSystem() {
     updateTimerDisplay();
 
     idleTimerInterval = setInterval(() => {
-        if (!isGameWon && !isGameOver) {
+        if (!isGameWon && !isGameOver && !isAutoCompleting) {
             idleSeconds++;
             updateTimerDisplay();
 
@@ -395,6 +394,7 @@ function initGame() {
     document.getElementById('auto-btn').style.display = 'none';
     isGameWon = false;
     isGameOver = false;
+    isAutoCompleting = false;
     clearSelection();
     updateHintLabel();
 
@@ -431,7 +431,7 @@ function saveState() {
 }
 
 function undoMove() {
-    if (history.length === 0 || isGameWon || isGameOver) return;
+    if (history.length === 0 || isGameWon || isGameOver || isAutoCompleting) return;
     resetIdleTimer();
     clearSelection();
     let state = JSON.parse(history.pop());
@@ -523,7 +523,7 @@ function createCardEl(card, x, y, faceUp) {
 }
 
 function handleStockClick() {
-    if (isGameWon || isGameOver) return;
+    if (isGameWon || isGameOver || isAutoCompleting) return;
     resetIdleTimer();
     clearSelection();
     saveState();
@@ -544,7 +544,7 @@ function handleStockClick() {
 function bindCardEvents(el, card, srcType, colIdx, cardIdx) {
     let clickTime = 0, isMoveAction = false;
     el.onmousedown = (e) => {
-        if (e.button !== 0 || isGameWon || isGameOver) return;
+        if (e.button !== 0 || isGameWon || isGameOver || isAutoCompleting) return;
         e.stopPropagation();
 
         let now = new Date().getTime();
@@ -675,7 +675,7 @@ function checkDrop(card, srcType, srcCol, srcIdx, mouseX, mouseY) {
         if (mouseX >= leftT - 15 && mouseX <= leftT + cardW + 15) {
             if ((!topCard && card.value === 13) || (topCard && topCard.color !== card.color && topCard.value === card.value + 1)) {
                 saveState();
-                tableau[t] = tableau[t].concat(removeSourceCard(srcType, srcCol, srcIdx));
+                tableau[t] = tableau[t].concat(removeSourceCard(srcType, colIdx, cardIdx));
                 score += 5; return true;
             }
         }
@@ -696,7 +696,7 @@ function removeSourceCard(type, col, idx) {
 
 function useHint() {
     clearSelection();
-    if (isGameWon || isGameOver) return;
+    if (isGameWon || isGameOver || isAutoCompleting) return;
 
     if (remainingHints <= 0) {
         alert("남은 힌트가 없습니다!");
@@ -772,7 +772,7 @@ function findValidProgressiveMove() {
 }
 
 function checkAutoLossCondition() {
-    if (isGameWon || isGameOver) return;
+    if (isGameWon || isGameOver || isAutoCompleting) return;
 
     let progressiveMove = findValidProgressiveMove();
     if (progressiveMove) return;
@@ -791,7 +791,7 @@ function checkAutoLossCondition() {
 }
 
 function triggerFailScreen(title = "NO MORE MOVES", msg = "더 이상 진행할 수 있는 수순이 없습니다!") {
-    if (isGameOver) return;
+    if (isGameOver || isGameWon || isAutoCompleting) return;
     isGameOver = true;
     clearInterval(idleTimerInterval);
     launchCrimsonShatterImpact();
@@ -847,18 +847,40 @@ function launchCrimsonShatterImpact() {
     anim();
 }
 
+/* 정확한 자동 완성 조건 확인 */
 function checkAutoCompleteCondition() {
-    if (stock.length > 0 || waste.length > 1) return;
-    let allFaceUp = tableau.every(col => col.every(c => c.faceUp));
-    if (allFaceUp && !isGameWon) document.getElementById('auto-btn').style.display = 'block';
-    else document.getElementById('auto-btn').style.display = 'none';
+    if (isGameWon || isGameOver || isAutoCompleting) {
+        document.getElementById('auto-btn').style.display = 'none';
+        return;
+    }
+
+    // 1. 덱(Stock)이 비어있어야 함
+    if (stock.length > 0) {
+        document.getElementById('auto-btn').style.display = 'none';
+        return;
+    }
+
+    // 2. 바닥의 모든 카드가 앞면이어야 함
+    let allTableauFaceUp = tableau.every(col => col.every(c => c.faceUp));
+    
+    if (allTableauFaceUp) {
+        document.getElementById('auto-btn').style.display = 'block';
+    } else {
+        document.getElementById('auto-btn').style.display = 'none';
+    }
 }
 
+/* 자동 완성 연출 실행 */
 function runAutoComplete() {
     document.getElementById('auto-btn').style.display = 'none';
+    isAutoCompleting = true;
+    clearInterval(idleTimerInterval); // 타이머 완전 중단
     clearSelection();
+
     let autoInterval = setInterval(() => {
         let moved = false;
+
+        // 1. 버림패(Waste)에서 파운데이션으로 이동
         if (waste.length > 0) {
             let card = waste[waste.length - 1];
             for (let f = 0; f < 4; f++) {
@@ -868,6 +890,8 @@ function runAutoComplete() {
                 }
             }
         }
+
+        // 2. 바닥(Tableau)에서 파운데이션으로 이동
         if (!moved) {
             for (let t = 0; t < 7; t++) {
                 if (tableau[t].length === 0) continue;
@@ -881,16 +905,29 @@ function runAutoComplete() {
                 if (moved) break;
             }
         }
+
         render();
-        if (!moved || foundations.every(f => f.length === 13)) clearInterval(autoInterval);
-    }, 100);
+
+        // 모든 카드가 파운데이션에 채워지면 성공 종료
+        let win = foundations.every(f => f.length === 13);
+        if (win) {
+            clearInterval(autoInterval);
+            isAutoCompleting = false;
+            checkWinCondition();
+        } else if (!moved) {
+            clearInterval(autoInterval);
+            isAutoCompleting = false;
+        }
+    }, 60);
 }
 
 function checkWinCondition() {
     let win = foundations.every(f => f.length === 13);
     if (win && !isGameWon) {
         isGameWon = true;
+        isGameOver = false;
         clearInterval(idleTimerInterval);
+        document.getElementById('fail-modal').style.display = 'none';
         document.getElementById('final-score').innerText = score;
         document.getElementById('win-modal').style.display = 'block';
     }
